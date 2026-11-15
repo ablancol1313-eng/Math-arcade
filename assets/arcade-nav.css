@@ -1,0 +1,23 @@
+
+:root{--arcade-nav-altura:calc(54px + env(safe-area-inset-bottom, 0px));}
+.arcade-global-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000001;display:flex;justify-content:center;align-items:center;
+  height:var(--arcade-nav-altura);padding:2px max(6px,env(safe-area-inset-left)) calc(2px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-right));
+  background:#070f28ee;backdrop-filter:blur(12px);border-top:1px solid #344c79;box-shadow:0 -3px 20px #0005;font:500 12px system-ui,Arial,sans-serif;}
+.arcade-global-nav a{flex:0 1 88px;min-width:0;min-height:40px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;
+  text-align:center;color:#e0ecff;text-decoration:none;border-radius:11px;padding:2px 3px;touch-action:manipulation;}
+.arcade-global-nav a:focus-visible,.arcade-global-nav a:hover{outline:2px solid #ffc53b;background:#152d56;}
+.arcade-global-nav .arcade-icon{font-size:18px;line-height:19px}.arcade-global-nav .arcade-label{font-size:9px;line-height:10px;font-weight:700;}
+.volver-arcade{display:none!important;}
+@media(max-width:760px){
+ .arcade-global-nav{height:var(--arcade-nav-altura);}
+ body{padding-bottom:var(--arcade-nav-altura)!important;}
+ /* Nunca quedan los controles del videojuego debajo de la barra. */
+ #pantallaJuego,#pantallaPortada,#pantallaInstrucciones{height:calc(100dvh - var(--arcade-nav-altura))!important;}
+ #juego{max-height:calc(100dvh - var(--arcade-nav-altura));}
+ .pantalla:not(#juego){max-height:calc(100dvh - var(--arcade-nav-altura));}
+ dialog{max-height:calc(100dvh - var(--arcade-nav-altura) - 25px)!important;}
+}
+
+@media(max-width:760px){
+ .arcade-global-nav a{border-radius:10px;padding:1px 2px;}
+}

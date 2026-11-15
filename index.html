@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=d25ccf20-0759-4ced-aeb3-4b1df1c471ce
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. --><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Math Arcade | Math Pixels</title>
+<style>
+:root{color-scheme:dark;--nav:#070c1d;--bg:#071126;--ink:#fff;--muted:#a7b4d4;--pink:#ff296b;--cyan:#11c5ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 65% 0%,#112a59 0%,#08132d 42%,#050a18 100%);color:var(--ink);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}button{font:inherit;cursor:pointer} .hidden{display:none!important}
+.sidebar{width:78px;position:fixed;inset:0 auto 0 0;background:linear-gradient(180deg,#080d1e,#050914);display:flex;flex-direction:column;align-items:center;gap:24px;padding:24px 10px;z-index:5;border-right:1px solid #152244}.side-btn{width:48px;height:48px;border:0;background:transparent;color:#acb5d2;font-size:28px;border-radius:12px;display:grid;place-items:center}.side-btn.active,.side-btn:hover{color:#ff3577;background:#151d3d}.side-btn.active:after{content:"";position:absolute;transform:translateY(28px);width:34px;height:4px;border-radius:5px;background:#ff3577}.main{margin-left:78px;min-height:100vh}.hero{height:clamp(230px,22vw,345px);position:relative;overflow:hidden;background:#051026}.hero:before{content:"";position:absolute;inset:0;background:url('assets/banner-sin-perfiles.webp') center center/cover no-repeat}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#071126 0,transparent 22%)}.hero-action{position:absolute;right:5%;bottom:24px;z-index:1}.primary{border:0;padding:13px 24px;background:linear-gradient(135deg,#ffcb35,#ff7a1d);color:#121529;font-size:17px;font-weight:900;border-radius:14px;box-shadow:0 5px 0 #9c4015}.primary:hover{filter:brightness(1.1)}.content{max-width:1600px;padding:0 34px 65px;margin:0 auto}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 15px}.section-head h2{font-size:clamp(23px,2vw,30px);margin:0;font-weight:900;text-shadow:3px 3px #06070e}.section{margin-top:6px}.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:18px}.game{min-width:0;text-align:center}.cover{display:block;width:100%;aspect-ratio:4/3;border:5px solid var(--game-color);border-radius:14px;overflow:hidden;background:#152341;padding:0;box-shadow:0 5px 0 #020711;transition:transform .15s,box-shadow .15s}.cover:hover,.cover:focus-visible{transform:translateY(-6px);box-shadow:0 11px 0 #020711;outline:2px solid white;outline-offset:3px}.cover img{width:100%;height:100%;object-fit:contain;display:block;background:#101d39}.game-name{display:block;font-size:clamp(15px,1.6vw,23px);font-weight:950;margin-top:15px;letter-spacing:.1px}.recent{margin-top:45px}.recent-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px}.recent-item{min-width:0;border:0;background:none;padding:0;color:#fff;text-align:left;cursor:pointer;transition:transform .16s}.recent-item:hover{transform:translateY(-4px)}.recent-item img{width:100%;aspect-ratio:1.86;object-fit:contain;display:block;background:#101d39;border-radius:8px}.bar{height:6px;border-radius:20px;background:#34415c;margin:8px 8px 0;overflow:hidden}.bar i{display:block;width:var(--progress);height:100%;background:var(--pink);border-radius:20px}.welcome{min-height:100vh;margin-left:78px;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 20%,#173e84 0%,#08152c 50%,#050913 100%)}.welcome-card{width:min(1330px,100%);text-align:center}.welcome-card img{width:100%;height:auto;max-height:560px;object-fit:contain;border-radius:23px;border:3px solid #1d569f;box-shadow:0 10px 50px #0009}.welcome-card h1{font-size:clamp(29px,5vw,55px);margin:14px 0 5px;color:#ffcd31;text-shadow:4px 5px #743e05}.welcome-card p{color:#d3e4ff;font-size:18px;margin:0 0 24px}.dialog-backdrop{position:fixed;inset:0;z-index:20;background:#010713ca;display:grid;place-items:center;padding:20px}.dialog{width:min(460px,100%);background:#0e1b3a;border:2px solid #328ae8;border-radius:19px;padding:24px;box-shadow:0 20px 90px #000}.dialog h2{margin:0 0 8px}.dialog p{line-height:1.5;color:#d3dffa}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.secondary{padding:10px 16px;border:1px solid #526b95;border-radius:10px;background:#1a2d53;color:#fff}.searchfield{background:#0d1b38;border:1px solid #4e6798;color:white;border-radius:9px;padding:10px 15px;width:min(340px,100%)}.empty{padding:25px;color:var(--muted)}
+@media(max-width:1100px){.grid,.recent-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{height:260px}.game-name{font-size:20px}}@media(max-width:570px){.sidebar{width:55px;padding:15px 4px;gap:14px}.side-btn{width:43px}.main,.welcome{margin-left:55px}.content{padding:0 15px 38px}.hero{height:190px}.hero-action{right:12px;bottom:18px}.hero-action .primary{padding:9px 13px;font-size:13px}.grid,.recent-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cover{border-width:3px}.game-name{font-size:16px;margin-top:8px}.recent{margin-top:34px}}
+.school{font-weight:900!important;font-size:clamp(20px,2.3vw,30px)!important;color:#fff!important;margin:7px 0!important}.project{font-size:clamp(15px,1.55vw,20px)!important;margin:5px 0!important}.cycle{color:#ffce52!important;font-weight:800;font-size:clamp(16px,1.65vw,21px)!important;margin:6px 0!important}.subtitle{margin:12px 0 25px!important;font-size:clamp(14px,1.3vw,18px)!important}.welcome{padding:22px 30px}.welcome-card img{max-height:min(53vh,560px)}@media(max-width:650px){.welcome{padding:16px}.welcome-card img{max-height:40vh}.welcome-card h1{font-size:32px}}
+
+/* Aldi con uniforme escolar en la bienvenida */
+.welcome-visual{position:relative;width:100%;overflow:hidden;border-radius:23px;border:3px solid #1d569f;box-shadow:0 10px 50px #0009;background:#081837}
+.welcome-card .welcome-visual .welcome-banner{width:100%;height:auto;max-height:480px;object-fit:cover;object-position:left center;border:0;border-radius:0;box-shadow:none;display:block}
+.welcome-card .welcome-visual .aldi-uniforme{position:absolute;right:0;bottom:-3%;height:91%;width:auto;max-width:37%;object-fit:contain;object-position:right bottom;border:0;border-radius:0;box-shadow:none;filter:drop-shadow(0 10px 10px #000b)}
+.hero-aldi{position:absolute;right:4%;bottom:-5%;height:94%;width:auto;max-width:30%;object-fit:contain;filter:drop-shadow(0 7px 8px #000a);z-index:1;pointer-events:none}
+@media(max-width:650px){.welcome-card .welcome-visual .aldi-uniforme{height:82%;max-width:37%}.welcome-card .welcome-visual .welcome-banner{min-height:170px;object-fit:cover}.hero-aldi{max-width:32%}}
+
+
+/* Mejoras táctiles para celulares y tabletas: sin deformar portadas */
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+button,.cover,.recent-item{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid #ffcd31;outline-offset:3px}
+@media(max-width:760px){
+ .sidebar{inset:auto 0 0 0;width:100%;height:59px;padding:5px 10px;flex-direction:row;justify-content:space-around;gap:4px;border-right:0;border-top:1px solid #304270;z-index:10}
+ .side-btn{width:50px;height:46px;font-size:23px;flex-shrink:0}
+ .side-btn.active:after{transform:translateY(23px);width:28px;height:3px}
+ .main,.welcome{margin-left:0}.main{padding-bottom:65px}
+ .welcome{min-height:100dvh;padding:18px 13px 78px}
+ .welcome-card{width:100%}.welcome-card h1{font-size:clamp(25px,7vw,36px)}
+ .welcome-card p{font-size:clamp(13px,3.8vw,17px)}
+ .welcome-card .welcome-visual .welcome-banner{max-height:38dvh;min-height:0;object-fit:contain;object-position:center}
+ .welcome-card .welcome-visual{border-radius:12px}
+ .hero{height:clamp(150px,36vw,245px)}.hero:before{background-size:contain;background-color:#071126}
+ .content{padding:12px 12px 30px}
+ .grid,.recent-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+ .cover{aspect-ratio:4/3}.cover img,.recent-item img{object-fit:contain}
+ .game-name{font-size:clamp(13px,3.7vw,19px);margin-top:7px;overflow-wrap:anywhere}
+ .primary,.secondary{min-height:44px}.dialog{max-height:80dvh;overflow:auto}
+ .section-head{flex-wrap:wrap}.section-head h2{font-size:23px}
+}
+@media(max-width:360px){.grid,.recent-grid{gap:8px}.content{padding-inline:8px}.game-name{font-size:13px}.sidebar{height:55px}}
+
+/* AJUSTES PARA CELULARES, TABLETAS Y PANTALLAS TÁCTILES — OCTUBRE 2026 */
+
+html, body{max-width:100%;overflow-x:clip}
+button{min-height:44px}
+@media(max-width:760px){
+ .sidebar{padding-bottom:max(5px,env(safe-area-inset-bottom));height:calc(59px + env(safe-area-inset-bottom));}
+ .main{padding-bottom:calc(68px + env(safe-area-inset-bottom));}
+ .welcome{padding-bottom:calc(78px + env(safe-area-inset-bottom));}
+ .welcome-card .welcome-visual{width:100%;aspect-ratio:auto}
+ .welcome-card .welcome-visual .welcome-banner{height:auto;object-fit:contain;max-height:min(36dvh,280px)}
+ .welcome-card .welcome-visual .aldi-uniforme{height:85%;max-width:34%;}
+ .welcome .primary{margin:3px auto 10px;max-width:100%;}
+ .cover{min-height:112px}.game .cover img{object-fit:contain;}
+ .dialog-backdrop{padding:12px;padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+ .dialog-actions .primary,.dialog-actions .secondary{flex:1;}
+ .searchfield{font-size:16px;}
+}
+@media(max-width:380px){.welcome-card h1{margin:8px 0 3px}.welcome-card p{margin-bottom:8px}.subtitle{margin-bottom:12px!important}}
+
+
+/* Créditos docentes en la portada original, sin tapar los personajes */
+.welcome-card .docentes{color:#d8e7ff;font-size:clamp(11px,1.15vw,14px)!important;
+    text-align:center;margin:8px auto 14px!important;font-weight:400;letter-spacing:.05px}
+.welcome-card .docentes strong{font-weight:700}
+/* Tras retirar la franja inferior de «Perfiles», el banner queda íntegro y legible. */
+.welcome-visual{aspect-ratio:1548 / 306;}
+.welcome-card .welcome-visual .welcome-banner{width:100%;height:100%;max-height:none;
+    object-fit:contain;object-position:center;background:#061020;min-height:0}
+.hero:before{background-position:center center;background-size:cover}
+@media(max-width:760px){
+  .welcome-card .docentes{text-align:center;font-size:11px!important;margin:8px auto 12px!important}
+  .welcome-card .welcome-visual .welcome-banner{max-height:none;min-height:0;height:100%;object-fit:contain}
+  .welcome-card .welcome-visual{aspect-ratio:1548 / 306}
+}
+
+
+@media(max-width:760px){
+ .welcome-card .welcome-visual{aspect-ratio:auto;min-height:110px;background:#061020}
+ .welcome-card .welcome-visual .welcome-banner{width:100%;height:auto;max-height:28dvh;object-fit:contain;object-position:center center;display:block}
+ .welcome-card h1{margin-top:12px}
+}
+
+/* === NOV 2026: PORTADA DEL MENÚ SIN RECORTES ===
+   Mantener el aspecto original del banner en todos los dispositivos.
+   Nunca usar background-size: cover aquí: oculta las letras de MATH ARCADE. */
+#app .hero {
+  position:relative;
+  height:auto !important;
+  min-height:0 !important;
+  aspect-ratio:1548 / 306;
+  overflow:visible;
+  background:#071126;
+}
+#app .hero::before {
+  background-image:url('assets/banner-sin-perfiles.webp');
+  background-repeat:no-repeat;
+  background-position:center center !important;
+  background-size:contain !important;
+}
+#app .hero::after {
+  background:linear-gradient(0deg,rgba(7,17,38,.18),transparent 30%);
+  pointer-events:none;
+}
+#app .hero-action {z-index:2;right:2%;bottom:12px;}
+@media (max-width:760px) {
+  #app .hero {margin-bottom:62px;}
+  #app .hero-action {right:12px;bottom:-54px;}
+  #app .hero-action .primary {padding:10px 16px;font-size:14px;}
+}
+
+/* Menú inferior permanente, también en laptop, integrado a Math Arcade */
+.sidebar{inset:auto 0 0 0!important;width:100%!important;height:calc(54px + env(safe-area-inset-bottom,0px))!important;
+  padding:2px max(6px,env(safe-area-inset-left,0px)) calc(2px + env(safe-area-inset-bottom,0px))!important;
+  display:flex!important;flex-direction:row!important;justify-content:center!important;align-items:center!important;gap:6px!important;
+  border-right:none!important;border-top:1px solid #2c406e!important;background:#060d22ef!important;backdrop-filter:blur(12px);}
+.side-btn{position:relative!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;
+  width:min(115px,19vw)!important;height:51px!important;min-height:50px!important;padding:3px!important;font-size:inherit!important;}
+.side-btn .nav-icon{font-size:18px;line-height:18px}.side-btn .nav-label{font-size:9px;font-weight:700;line-height:10px;}
+.side-btn.active:after{position:absolute!important;transform:none!important;left:20%!important;right:20%!important;bottom:0!important;width:auto!important;height:3px!important;}
+.main,.welcome{margin-left:0!important;padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))!important;}
+@media(max-width:760px){.main{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))!important;}
+.welcome{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))!important;}
+.welcome .primary{margin-bottom:6px!important;}}
+.dialog #modalText{white-space:pre-line}
+
+/* v14: portada inicial dentro del espacio real que deja la barra fija. */
+#welcome:not(.hidden){
+  height:calc(100dvh - 54px - env(safe-area-inset-bottom,0px)) !important;
+  min-height:0 !important;
+  padding:clamp(8px,1.5vh,16px) 16px !important;
+  display:flex !important;align-items:center;justify-content:center;
+  overflow-y:auto;overflow-x:hidden;
+}
+#welcome .welcome-card{width:min(1330px,100%);margin:auto;flex:0 0 auto;}
+#welcome .welcome-card .welcome-visual{aspect-ratio:1548 / 306 !important;min-height:0 !important;}
+#welcome .welcome-card .welcome-banner{width:100%;height:100%;max-height:min(35dvh,310px) !important;object-fit:contain !important;}
+#welcome .welcome-card h1{font-size:clamp(24px,4.8vh,44px) !important;margin:clamp(4px,1vh,8px) 0 3px !important;}
+#welcome .welcome-card .school{font-size:clamp(16px,2.9vh,25px)!important;margin:3px 0!important;}
+#welcome .welcome-card .project{font-size:clamp(12px,2.1vh,17px)!important;margin:3px 0!important;}
+#welcome .welcome-card .cycle{font-size:clamp(13px,2.3vh,19px)!important;margin:3px 0!important;}
+#welcome .welcome-card .subtitle{font-size:clamp(12px,2.1vh,16px)!important;margin:5px 0!important;}
+#welcome .welcome-card .docentes{margin:7px 0!important;font-size:clamp(11px,1.8vh,14px)!important;}
+#welcome #start{font-size:clamp(14px,2vh,17px)!important;padding:10px 20px!important;min-height:44px!important;margin:4px auto 6px!important;}
+@media(max-width:760px){
+ #welcome:not(.hidden){padding:8px 11px!important;}
+ #welcome .welcome-card .welcome-visual{aspect-ratio:1548 / 306!important;}
+ #welcome .welcome-card .welcome-banner{max-height:24dvh!important;}
+ #welcome .welcome-card h1{font-size:clamp(23px,5vw,32px)!important;}
+ #welcome .welcome-card .school{font-size:clamp(15px,4vw,20px)!important;}
+ #welcome .welcome-card .docentes{margin:4px 0 6px!important;}
+}
+@media(max-height:570px){
+ #welcome:not(.hidden){align-items:flex-start!important;}
+ #welcome .welcome-card .welcome-visual{max-height:21dvh!important;}
+ #welcome .welcome-card .welcome-banner{max-height:21dvh!important;}
+}
+
+
+
+/* v15: botones principales consistentes con los juegos */
+.primary{border:2px solid #fff !important;border-radius:14px !important;box-shadow:0 5px 0 #9c4015,0 10px 18px rgba(0,0,0,.16) !important;}
+.secondary{border:2px solid #fff !important;border-radius:14px !important;background:linear-gradient(180deg,#3e72f2 0%,#1846b9 100%) !important;color:#fff !important;box-shadow:0 5px 0 #0f2f82,0 10px 18px rgba(0,0,0,.16) !important;}
+
+</style>
+</head>
+<body>
+<nav class="sidebar" aria-label="Navegación">
+<button class="side-btn active" title="Inicio" aria-label="Inicio" data-nav="home"><span class="nav-icon" aria-hidden="true">⌂</span><span class="nav-label">Inicio</span></button>
+<button class="side-btn" title="Buscar" aria-label="Buscar" data-nav="search"><span class="nav-icon" aria-hidden="true">⌕</span><span class="nav-label">Buscar</span></button>
+<button class="side-btn" title="Juegos" aria-label="Juegos" data-nav="games"><span class="nav-icon" aria-hidden="true">🎮</span><span class="nav-label">Juegos</span></button>
+<button class="side-btn" title="Favoritos" aria-label="Favoritos" data-nav="favorites"><span class="nav-icon" aria-hidden="true">★</span><span class="nav-label">Favoritos</span></button>
+<button class="side-btn" title="Información" aria-label="Información" data-nav="info"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">Acerca de</span></button>
+</nav>
+<audio id="musicaArcade" src="Fondomatharcade.mp3" loop preload="auto" autoplay playsinline></audio>
+<section class="welcome" id="welcome"><div class="welcome-card"><div class="welcome-visual"><img class="welcome-banner" src="assets/banner-sin-perfiles.webp" alt="Math Arcade, videojuegos matemáticos del Colegio Nezaldi"></div><h1>MATH ARCADE</h1><p class="school">Comunidad de Aprendizaje Nezaldi</p><p class="project">Proyecto de Tercero de Secundaria · Computación y Matemáticas</p><p class="cycle">Ciclo escolar 2026–2027</p><p class="subtitle">¡Seis juegos creados por estudiantes, infinitas maneras de aprender!</p><p class="docentes">Docentes responsables: <strong>Ana Blanco y Perla Cabello</strong></p><button class="primary" id="start">▶ COMENZAR</button></div></section>
+<main class="main hidden" id="app"><div class="hero" role="img" aria-label="Banner pixel art de Math Arcade y Colegio Nezaldi"><div class="hero-action"><button class="primary" id="heroPlay">▶ ELEGIR JUEGO</button></div></div><div class="content"><section class="section"><div class="section-head"><h2 id="sectionTitle">Videojuegos</h2><input type="search" class="searchfield hidden" id="search" aria-label="Buscar juego" placeholder="Buscar videojuego…"></div><div class="grid" id="grid"></div><p class="empty hidden" id="empty">No se encontraron videojuegos.</p></section></div></main>
+<div id="modal" class="dialog-backdrop hidden" role="presentation"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle"></h2><p id="modalText"></p><div class="dialog-actions"><button class="secondary" id="close">Cerrar</button><button class="primary" id="openGame">▶ JUGAR</button></div></div></div>
+<script>
+// Los seis videojuegos de Math Arcade están integrados.
+const games=[
+{id:'nezaldi-fc',name:'Nezaldi FC',color:'#00bdff',file:'juegos/nezaldi-fc/index.html',desc:'Fútbol y desafíos matemáticos.'},
+{id:'aldi-divisor',name:'Aldi divisor',color:'#ff981b',file:'juegos/aldi-divisor/index.html',desc:'Divisiones y operaciones con Aldi.'},
+{id:'a-toda-mate',name:'A toda mate',color:'#ffe100',file:'juegos/a-toda-mate/index.html',desc:'Un recorrido matemático por el colegio.'},
+{id:'pacminion',name:'Pacminion',color:'#a94dff',file:'juegos/pacminion/index.html',desc:'Aventuras, laberintos y retos.'},
+{id:'mathrix',name:'Mathrix',color:'#07e2a0',file:'juegos/mathrix/index.html',desc:'Figuras geométricas y acertijos.'},
+{id:'daca',name:'DACA',color:'#fa386a',file:'juegos/daca/index.html',desc:'Dos personajes, cuatro niveles cooperativos y retos matemáticos.'}
+];
+const el=id=>document.getElementById(id);let selected=null;let current='home';
+function render(){
+  const term=el('search').value.toLowerCase().trim();
+  const list=games.filter(g=>(current!=='favorites'||localStorage.getItem('fav:'+g.id)==='1')&&g.name.toLowerCase().includes(term));
+  el('grid').innerHTML=list.map(g=>`<div class="game"><button class="cover" style="--game-color:${g.color}" onclick="choose('${g.id}')" aria-label="Abrir ${g.name}"><img src="assets/${g.id}.webp" alt="Portada de ${g.name}"></button><span class="game-name">${g.name}</span></div>`).join('');
+  el('empty').classList.toggle('hidden',list.length>0);
+}
+
+// Música de portada: intenta sonar desde la carga de la web. En iPhone y
+// algunos Android se requiere el primer toque real; COMENZAR lo inicia.
+const musicaArcade=el('musicaArcade');
+musicaArcade.volume=0.48;
+musicaArcade.preload='auto';
+let audioActivadoPorVisitante=false;
+function reproducirMusica(){
+  if (document.hidden || !musicaArcade.paused) return;
+  try {
+    const intento=musicaArcade.play();
+    if (intento && typeof intento.catch==='function') intento.catch(()=>{});
+  } catch(e) { /* Safari puede bloquear audio hasta una interacción */ }
+}
+function primerToque(){
+  audioActivadoPorVisitante=true;
+  reproducirMusica();
+}
+// Al tocar cualquier punto de la portada (sin botones adicionales), empieza.
+for(const nombre of ['pointerdown','touchstart','touchend','click','keydown']){
+  document.addEventListener(nombre,primerToque,{capture:true,passive:true});
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',reproducirMusica,{once:true});
+else reproducirMusica();
+window.addEventListener('load',reproducirMusica,{once:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) musicaArcade.pause();
+  else if(audioActivadoPorVisitante) reproducirMusica();
+});
+window.addEventListener('pagehide',()=>musicaArcade.pause());
+window.addEventListener('pageshow',()=>{if(audioActivadoPorVisitante)reproducirMusica()});
+function showApp(){primerToque();el('welcome').classList.add('hidden');el('app').classList.remove('hidden');window.scrollTo(0,0);render()}
+function abrirInformacion(){
+  selected=null;
+  el('modalTitle').textContent='Sobre Math Arcade';
+  el('modalText').textContent='Proyecto de videojuegos matemáticos creados por estudiantes de tercero de secundaria de la Comunidad de Aprendizaje Nezaldi.\n\nDocentes responsables: Ana Blanco y Perla Cabello.';
+  el('openGame').classList.add('hidden');
+  el('openGame').disabled=true;
+  el('modal').classList.remove('hidden');
+}
+function choose(id){el('openGame').classList.remove('hidden');selected=games.find(g=>g.id===id);el('modalTitle').textContent=selected.name;el('modalText').textContent=selected.desc+(selected.pending?' Próximamente: falta integrar la carpeta de DACA.':' Selecciona JUGAR para comenzar.');el('openGame').disabled=!!selected.pending;el('modal').classList.remove('hidden')}
+el('start').onclick=showApp;el('heroPlay').onclick=()=>{el('grid').scrollIntoView({behavior:'smooth'})};el('close').onclick=()=>el('modal').classList.add('hidden');el('modal').onclick=e=>{if(e.target===el('modal'))el('modal').classList.add('hidden')};document.addEventListener('keydown',e=>{if(e.key==='Escape')el('modal').classList.add('hidden')});
+el('openGame').onclick=()=>{if(!selected||selected.pending)return;musicaArcade.pause();location.href=selected.file};
+el('search').oninput=render;document.querySelectorAll('[data-nav]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-nav]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');current=btn.dataset.nav;if(current==='home'){el('app').classList.add('hidden');el('welcome').classList.remove('hidden');window.scrollTo(0,0);return;}if(current==='info'){abrirInformacion();current='home'}showApp();el('sectionTitle').textContent=current==='favorites'?'Favoritos':current==='search'?'Buscar juegos':'Videojuegos';el('search').classList.toggle('hidden',current!=='search');if(current==='search')el('search').focus()});
+// Desde los videojuegos, el menú inferior vuelve directamente a la sección elegida.
+(function abrirSeccionEnlace(){
+  const view=new URLSearchParams(location.search).get('view');
+  if(!view || view==='home')return;
+  if(!['games','search','favorites','info'].includes(view))return;
+  showApp();
+  current=view==='info'?'home':view;
+  document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));
+  el('sectionTitle').textContent=view==='favorites'?'Favoritos':view==='search'?'Buscar juegos':'Videojuegos';
+  el('search').classList.toggle('hidden',view!=='search');
+  
+  render();
+  if(view==='info') abrirInformacion();
+})();
+render();
+</script>
+</body></html>
