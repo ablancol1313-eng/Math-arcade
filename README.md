@@ -1,4 +1,4 @@
-#Math Arcade | Math Pixels
+## Math Arcade | Math Pixels
 
 Plataforma web que reúne seis videojuegos educativos para practicar matemáticas de forma interactiva.
 
