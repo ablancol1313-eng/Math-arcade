@@ -1,0 +1,1303 @@
+<!DOCTYPE html> 
+
+<html lang="es"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<title>Math Arcade | Math Pixels</title> 
+<style> 
+
+/* ===== COLORES: EDITEN SOLO LOS VALORES DESPUÉS DE : ===== */
+:root { 
+    --pagina: #0D0847; /* CAMBIA: color del fondo exterior de la página. */
+    --texto: #192338; /* CAMBIA: color de las letras generales. */
+    --titulo: #254eaf; /* CAMBIA: color del título si después deciden mostrarlo. */
+    --portada: #FFFFE0; /* CAMBIA: color detrás de la imagen de portada. */
+    --botones: #254eaf; /* CAMBIA: color de los botones. */
+    --texto-boton: #ffffff; /* CAMBIA: color de las letras de los botones. */
+    --marcador: #ffffff; /* CAMBIA: color del marcador superior. */
+    --panel-reto: #ffffffed; /* CAMBIA: color del recuadro de preguntas. */
+    --panel-estado: #0D0847; /* CAMBIA: color del fondo de mensajes. */
+    --campo-claro: #2b995a; /* CAMBIA: color claro del césped si NO usan imagen de cancha. */
+    --campo-oscuro: #21864c; /* CAMBIA: color oscuro del césped si NO usan imagen de cancha. */
+    --borde-cancha: #223353; /* CAMBIA: color del borde de la cancha. */
+    --equipo-a: #b8d8ff; /* CAMBIA: fondo detrás de los Aldis del equipo A. */
+    --borde-a: #124d9e; /* CAMBIA: borde de los Aldis del equipo A. */
+    --equipo-b: #ffc8c8; /* CAMBIA: fondo detrás de los Aldis del equipo B. */
+    --borde-b: #a71f28; /* CAMBIA: borde de los Aldis del equipo B. */
+    --etiqueta: #ffffff; /* CAMBIA: fondo de los nombres de jugadores. */
+    --texto-etiqueta: #111111; /* CAMBIA: color de los nombres de jugadores. */
+    --campo-respuesta: #ffffff; /* CAMBIA: color del espacio para escribir la respuesta. */
+    --borde-respuesta: #666677; /* CAMBIA: borde del espacio de respuesta. */
+    --foco: #ec8400; /* CAMBIA: color del contorno al seleccionar. */
+    --gol-fondo: #ffd21f; /* CAMBIA: color del letrero ¡GOOOOL!. */
+    --gol-texto: #17213a; /* CAMBIA: color de las letras de ¡GOOOOL!. */
+} 
+
+* { box-sizing: border-box; } 
+[hidden] { display: none !important; } 
+html, body { height: 100%; }
+body { margin: 0; font-family: Arial, sans-serif; background: var(--pagina); color: var(--texto); overflow: hidden; } 
+main { width: min(1600px, 98vw); height: 100vh; margin: 0 auto; padding: 6px 0; }  
+button, input { font: inherit; } 
+button { padding: 10px 14px; border: 0; border-radius: 10px; background: var(--botones); color: var(--texto-boton); cursor: pointer; } 
+button:disabled { opacity: .55; cursor: default; } 
+button:focus-visible, input:focus-visible { outline: 3px solid var(--foco); outline-offset: 3px; } 
+.tarjeta { background: var(--portada); border-radius: 18px; padding: 10px; } 
+#portada {
+    width: 100%;
+    height: calc(100vh - 12px);
+    margin: 0 auto;
+    padding: 0;
+    background: transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+} 
+#imagenPortada {
+    width: 100%;
+    height: calc(100vh - 185px);
+    object-fit: cover; /* CAMBIA AQUÍ: "cover" llena todo sin bordes; "contain" muestra la imagen completa. */
+    object-position: center; /* CAMBIA AQUÍ: center / top / bottom. */
+    display: block;
+    border-radius: 0;
+    background: transparent;
+} 
+#comenzar { margin-top: 8px; padding: 14px 34px; font-size: 20px; font-weight: bold; } 
+.hud { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 12px; background: var(--marcador); border-radius: 12px; margin-bottom: 6px; font-weight: bold; } 
+#juego { height: calc(100vh - 12px); display: flex; flex-direction: column; }
+#escenario { position: relative; width: 100%; flex: 1 1 auto; min-height: 260px; height: auto; overflow: hidden; border: 3px solid var(--borde-cancha); border-radius: 16px; background: var(--campo-claro); }  
+#fondo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; } 
+/* PORTERÍAS AMPLIAS: cambia height para abrirlas más y width para darles profundidad. */
+.porteria {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 7%; height: 46%; min-width: 26px;
+    border: 5px solid white; border-radius: 5px;
+    background-color: #ffffff20;
+    background-image: linear-gradient(#ffffff66 1px, transparent 1px), linear-gradient(90deg, #ffffff66 1px, transparent 1px);
+    background-size: 12px 12px;
+    box-shadow: 0 0 5px #0008; z-index: 2; pointer-events: none;
+}
+.porteria-izquierda { left: 0; }
+.porteria-derecha { right: 0; }
+/* Si cancha.webp ya tiene porterías y redes, se usan las de la imagen.
+   Así no aparece otra portería encima ni queda desalineada con su red.
+   Las porterías dibujadas solo se muestran si no se carga la imagen. */
+#escenario.con-cancha-imagen .porteria { display: none; }
+
+.figura { position: absolute; z-index: 3; width: clamp(38px, 6vw, 70px); height: clamp(42px, 7vw, 80px); text-align: center; } 
+.figura img { width: 100%; height: 100%; object-fit: contain; } 
+.emoji { font-size: clamp(28px, 5vw, 45px); } 
+.nombre { display: block; background: var(--etiqueta); border-radius: 5px; font-size: 11px; padding: 2px; color: var(--texto-etiqueta); } 
+.movil { z-index: 5; transition: left .7s ease, top .7s ease; } 
+#retos { position: relative; z-index: 6; background: var(--panel-reto); padding: 16px; border-radius: 14px; margin: 14px 0 10px; }  
+#pregunta { margin: 5px 0 10px; font-weight: bold; font-size: 18px; line-height: 1.2; } 
+form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } 
+input { min-width: 0; width: 120px; max-width: 100%; padding: 6px 8px; border: 2px solid var(--borde-respuesta); background: var(--campo-respuesta); color: var(--texto); border-radius: 8px; } 
+#mensaje { min-height: 24px; margin: 8px 0; font-weight: bold; } 
+#ayuda { font-size: 13px; background: var(--panel-estado); padding: 8px; } 
+.acciones { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; } 
+#estado { display: none; } 
+
+#panelInferior {
+    flex: 0 0 auto;
+    margin-top: 6px;
+    background: var(--panel-reto);
+    border-radius: 14px;
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+#retos {
+    flex: 1 1 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    text-align: center;
+}
+#pregunta { margin: 0 0 4px; }
+#formulario { margin: 0; justify-content: center; }
+#mensaje { min-height: 0; margin: 4px 0 0; }
+#mensaje:empty { display: none; }
+#continuar { margin-top: 4px; }
+#ayuda { flex: 1 1 100%; margin: 0; }
+
+#mensaje {
+    text-align: center;
+}
+#continuar {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.acciones {
+    margin: 0;
+    gap: 8px;
+    flex: 1 1 100%;
+    justify-content: center;
+}
+.acciones button { padding: 8px 14px; }
+
+#escenario { background: repeating-linear-gradient(90deg, var(--campo-oscuro) 0 12.5%, var(--campo-claro) 12.5% 25%); } 
+.linea { position: absolute; left: 50%; height: 100%; border-left: 2px solid var(--lineas-cancha); } 
+.circulo { position: absolute; left: 41%; top: 27%; width: 18%; height: 46%; border: 2px solid var(--lineas-cancha); border-radius: 50%; } 
+.movil { width: 30px; height: 30px; } 
+.movil .emoji { font-size: 27px; } 
+.equipoA { background: var(--equipo-a); border: 2px solid var(--borde-a); border-radius: 12px; } 
+.equipoB { background: var(--equipo-b); border: 2px solid var(--borde-b); border-radius: 12px; } 
+#letreroGol {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+#letreroGol span {
+    display: inline-block;
+    padding: 18px 34px;
+    border-radius: 22px;
+    background: var(--gol-fondo);
+    color: var(--gol-texto);
+    border: 5px solid #ffffff;
+    box-shadow: 0 10px 30px #00000055;
+    font-weight: 900;
+    font-size: clamp(44px, 10vw, 105px);
+    letter-spacing: 3px;
+    text-align: center;
+    animation: animacionGol 1.7s ease both;
+}
+@keyframes animacionGol {
+    0%   { transform: scale(.25) rotate(-8deg); opacity: 0; }
+    20%  { transform: scale(1.18) rotate(3deg); opacity: 1; }
+    45%  { transform: scale(1) rotate(0deg); opacity: 1; }
+    80%  { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(.85); opacity: 0; }
+}
+
+@media (max-width: 700px) {
+    #selectorEquipo {
+        grid-template-columns: 90px auto 90px;
+        gap: 8px;
+    }
+    .opcionEquipo { width: 90px; }
+    .opcionEquipo img { height: 62px; }
+    #zonaComenzar { min-width: 150px; }
+
+    body { overflow: auto; }
+    main { width: 98vw; height: auto; min-height: 100vh; padding: 6px 0 10px; }
+    #portada { height: auto; min-height: calc(100vh - 12px); }
+    #juego { height: auto; min-height: calc(100vh - 12px); }
+    #escenario { min-height: 360px; height: 60vh; }
+    #imagenPortada { height: 72vh; }
+    .hud { gap: 8px; font-size: 14px; }
+}
+
+
+#selectorEquipo {
+    display: grid;
+    grid-template-columns: 120px auto 120px;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+    margin-top: 8px;
+}
+
+.opcionEquipo {
+    width: 120px;
+    padding: 7px;
+    border: 3px solid transparent;
+    border-radius: 14px;
+    background: #ffffff;
+    cursor: pointer;
+    opacity: .78;
+    transition: transform .2s ease, opacity .2s ease, border-color .2s ease;
+}
+
+.opcionEquipo:hover {
+    transform: scale(1.04);
+    opacity: 1;
+}
+
+.opcionEquipo.seleccionado {
+    opacity: 1;
+    border-color: var(--foco);
+    transform: scale(1.06);
+}
+
+.opcionEquipo img {
+    width: 100%;
+    height: 78px;
+    object-fit: contain;
+    display: block;
+}
+
+.opcionEquipo span {
+    display: block;
+    margin-top: 3px;
+    font-weight: bold;
+    color: var(--texto);
+}
+
+#zonaComenzar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+}
+
+#textoSeleccion {
+    margin: 0 0 6px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 14px;
+}
+
+#comenzar {
+    margin-top: 0;
+    padding: 14px 34px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+
+/* BIENVENIDA E INSTRUCCIONES: esta pantalla aparece antes del partido. */
+#bienvenida {
+    height: calc(100dvh - 12px); /* Usa el espacio disponible de la pantalla. */
+    overflow-y: auto; /* Permite leer todas las instrucciones en teléfonos. */
+    padding: clamp(18px, 4vw, 42px);
+    background-color: var(--portada);
+    background-size: cover;
+    background-position: center;
+}
+.bienvenida-contenido {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    padding: clamp(18px, 3vw, 30px);
+    border-radius: 18px;
+    background: #FFFFE0; /* Blanco casi opaco para leer sobre una foto. */
+    color: #202020;
+    line-height: 1.55;
+}
+#tituloBienvenida { margin: 0 0 12px; font-size: clamp(28px, 5vw, 42px); }
+#listaInstrucciones { padding-left: 24px; }
+#listaInstrucciones li { margin: 10px 0; }
+#equipoBienvenida { font-weight: bold; }
+#bienvenida #comenzar { font-weight: bold; }
+/* AQUÍ CAMBIA EL FONDO DE BIENVENIDA: guarda la imagen junto al HTML
+   y quita los signos de comentario que rodean las siguientes líneas. */
+/*
+#bienvenida {
+    background-image: url("FONDO-BIENVENIDA-FC.webp");
+}
+*/
+
+/* PORTADA A PANTALLA COMPLETA: el botón se coloca SOBRE la imagen. */
+#portada { position: relative; height: calc(100dvh - 12px); min-height: 0; overflow: hidden; }
+#imagenPortada { height: 100%; width: 100%; object-fit: cover; }
+/* EDITAR: bottom cambia la distancia del botón al borde inferior. */
+#entrarBienvenida {
+    position: absolute; left: 50%; bottom: max(24px, env(safe-area-inset-bottom));
+    transform: translateX(-50%); width: auto; height: auto;
+    padding: 14px 34px; border-radius: 12px; font-size: 22px; font-weight: bold;
+    background: var(--botones); color: var(--texto-boton); box-shadow: 0 4px 18px #0005;
+}
+/* BIENVENIDA: encabezado arriba, contenido en dos columnas y botones siempre visibles. */
+#bienvenida { height: calc(100dvh - 12px); overflow: hidden; padding: clamp(8px, 2vh, 18px); }
+.bienvenida-contenido {
+    width: min(1100px, 100%); height: 100%; min-height: 0;
+    display: flex; flex-direction: column; gap: 10px;
+    padding: clamp(12px, 2vh, 22px); overflow: hidden; line-height: 1.35;
+}
+.encabezado-bienvenida { flex: 0 0 auto; }
+#tituloBienvenida { margin: 0 0 6px; font-size: clamp(23px, 3.7vw, 34px); }
+.encabezado-bienvenida p { margin: 3px 0; font-size: 14px; }
+.cuerpo-bienvenida {
+    display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+    flex: 1 1 0; min-height: 0; gap: 20px;
+}
+.reglas-bienvenida { min-height: 0; overflow-y: auto; padding: 0 8px 0 0; }
+/* En pantallas muy pequeñas solo se desplaza el texto de las reglas;
+   la elección del equipo y los botones siguen a la vista. */
+.cuerpo-bienvenida h2 { margin: 0 0 8px; font-size: 21px; }
+#listaInstrucciones { margin: 0; padding-left: 22px; font-size: 14px; }
+#listaInstrucciones li { margin: 0 0 8px; line-height: 1.35; }
+.seleccion-bienvenida { min-width: 0; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+#bienvenida #selectorEquipo {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 130px));
+    align-items: center; justify-content: center; gap: 10px; margin: 0;
+}
+#bienvenida .opcionEquipo { width: 100%; min-width: 0; }
+#bienvenida .opcionEquipo img { height: clamp(55px, 13vh, 105px); }
+#bienvenida #zonaComenzar { grid-row: 2; grid-column: 1 / -1; min-width: 0; }
+#bienvenida #textoSeleccion { font-size: 14px; }
+#bienvenida .acciones-bienvenida {
+    flex: 0 0 auto; display: flex; flex-wrap: nowrap; justify-content: center; gap: 12px;
+    margin: 0; padding-top: 10px; border-top: 1px solid #ddd;
+}
+#bienvenida #comenzar { margin: 0; padding: 12px 36px; font-size: 20px; }
+@media (max-width: 650px) {
+    .cuerpo-bienvenida { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; }
+    #bienvenida .opcionEquipo img { height: 50px; }
+    #bienvenida #selectorEquipo { grid-template-columns: repeat(2, minmax(0, 110px)); gap: 6px; }
+    #bienvenida .acciones-bienvenida button { padding: 10px 14px; font-size: 16px; }
+    .encabezado-bienvenida p { font-size: 12px; }
+    #tituloBienvenida { font-size: 23px; }
+}
+
+/* Reserva espacio para que el sonido no tape el marcador. */
+.hud { padding-right: 175px; min-height: 48px; }
+/* Control de sonido visible en todas las pantallas. */
+#controlSonido {
+    position: fixed; top: 10px; right: 12px; z-index: 100;
+    padding: 9px 13px; background: #15254deb; color: white;
+    border: 2px solid #ffffffa0; border-radius: 12px;
+    font-size: 14px; box-shadow: 0 2px 10px #0005;
+}
+
+/* Compatibilidad táctil y tamaño legible en celular */
+html{-webkit-text-size-adjust:100%}
+button,input,select{touch-action:manipulation}
+button{min-height:36px}
+@media(max-width:650px){button{max-width:100%}input{max-width:100%;font-size:16px}img{max-width:100%}}
+
+/* AJUSTES PARA CELULARES, TABLETAS Y PANTALLAS TÁCTILES — OCTUBRE 2026 */
+
+html,body{max-width:100%;overflow-x:clip}button{min-height:44px;touch-action:manipulation}
+input{font-size:16px;min-height:44px}
+@media(max-width:700px) and (orientation:portrait){
+ body{overflow-y:auto}main{height:auto;min-height:100dvh;width:100%;padding:3px}
+ #portada{height:100dvh}#imagenPortada{object-fit:contain;background:#0d0847}
+ #bienvenida{min-height:100dvh;height:auto;overflow:auto;padding:8px}
+ .bienvenida-contenido{height:auto;min-height:auto;overflow:visible;padding:12px;gap:7px}
+ .cuerpo-bienvenida{display:flex;flex-direction:column;gap:12px}
+ .reglas-bienvenida{max-height:none;overflow:visible}
+ #bienvenida .acciones-bienvenida{padding-top:8px;gap:8px}
+ #bienvenida #comenzar{font-size:17px;padding:9px 16px}
+ #juego{height:auto!important;min-height:100dvh;gap:5px;overflow:visible}
+ #juego .hud{font-size:12px;gap:4px;padding:6px;margin:0}
+ #escenario{flex:0 0 auto;min-height:220px;height:clamp(220px,38dvh,350px);border-radius:9px;border-width:2px;}
+ #retos{margin:6px 0 4px;padding:9px}
+ #pregunta{font-size:clamp(16px,4.5vw,20px)}
+ #formulario{gap:6px}#respuesta{flex:1 1 125px;width:125px;min-width:90px}
+ #panelInferior{padding:0 4px}
+ #controlSonido{font-size:12px;padding:5px 8px;min-height:36px}
+}
+@media(max-width:900px) and (orientation:landscape){
+ #juego{min-height:100dvh;height:auto}
+ #escenario{min-height:180px;height:55dvh;flex:0 0 auto}
+ #retos{padding:8px;margin:5px 0}
+ #pregunta{font-size:17px}
+}
+
+
+/* Salida a la portada principal del proyecto desde cualquier pantalla */
+.volver-arcade {
+ position:fixed;top:10px;left:12px;z-index:999999;min-height:38px;
+ display:inline-flex;align-items:center;gap:5px;padding:7px 12px;
+ border:2px solid rgba(255,255,255,.7);border-radius:12px;
+ background:rgba(9,22,51,.92);color:white;text-decoration:none;
+ font:700 13px/1.2 system-ui,Arial,sans-serif;box-shadow:0 2px 10px #0009;
+}
+.volver-arcade:hover,.volver-arcade:focus-visible{background:#2252a2;outline:2px solid #fff;}
+@media(max-width:600px){.volver-arcade{top:8px;left:7px;padding:6px 8px;min-height:36px;font-size:12px;}}
+
+
+@media(max-width:700px) and (orientation:portrait){
+ #bienvenida{padding-bottom:14px;}
+ .encabezado-bienvenida p{font-size:12px;line-height:1.32;margin:2px 0;}
+ #listaInstrucciones{font-size:13px;padding-left:18px;}
+ #listaInstrucciones li{margin:0 0 6px;line-height:1.25;}
+ .seleccion-bienvenida{margin-top:2px;}
+ #bienvenida .acciones-bienvenida{position:sticky;bottom:0;background:#FFFFE0;padding-top:8px;padding-bottom:max(6px, env(safe-area-inset-bottom));}
+}
+
+/* Bienvenida Nezaldi FC: reglas, luego equipos y al final botones (nunca superpuestos). */
+@media(max-width:700px) and (orientation:portrait){
+ body{overflow:auto!important;}
+ main{height:auto!important;min-height:calc(100dvh - var(--arcade-nav-altura))!important;padding:2px 0 0!important;}
+ #bienvenida{height:calc(100dvh - var(--arcade-nav-altura))!important;min-height:0!important;overflow-y:auto!important;padding:10px 7px 16px!important;}
+ #bienvenida .bienvenida-contenido{height:auto!important;min-height:0!important;display:block!important;overflow:visible!important;padding:16px 12px!important;}
+ #bienvenida .cuerpo-bienvenida{display:flex!important;flex:none!important;min-height:0!important;height:auto!important;flex-direction:column!important;gap:15px!important;}
+ #bienvenida .reglas-bienvenida{display:block!important;flex:none!important;max-height:none!important;overflow:visible!important;padding:0 4px!important;}
+ #bienvenida .seleccion-bienvenida{display:block!important;position:static!important;transform:none!important;margin-top:8px!important;text-align:center!important;}
+ #bienvenida #selectorEquipo{display:grid!important;grid-template-columns:repeat(2,minmax(0,115px))!important;gap:12px!important;justify-content:center!important;}
+ #bienvenida .acciones-bienvenida{position:static!important;display:flex!important;justify-content:center!important;gap:10px!important;flex:none!important;margin:18px 0 6px!important;padding:10px 0!important;background:#ffffe0!important;}
+ #bienvenida #listaInstrucciones{margin-bottom:12px!important;}
+ #bienvenida #tituloElegirEquipo{margin:10px auto 8px!important;}
+ #bienvenida #zonaComenzar{grid-column:1/-1!important;grid-row:2!important;align-items:center!important;}
+ #juego{max-height:none!important;}
+ #portada{height:calc(100dvh - var(--arcade-nav-altura))!important;}
+}
+
+/* Ajuste final: nombres de jugadores más legibles en celular */
+.nombre {
+    min-width: 0;
+    max-width: 74px;
+    margin: 2px auto 0;
+    line-height: 1.05;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,.12);
+}
+@media (max-width: 700px) {
+    .nombre {
+        font-size: 9px !important;
+        padding: 2px 4px !important;
+        max-width: 68px;
+        border-radius: 6px;
+    }
+    .figura {
+        width: clamp(34px, 9vw, 56px);
+        height: clamp(38px, 10vw, 62px);
+    }
+}
+@media (max-width: 430px) {
+    .nombre {
+        font-size: 8px !important;
+        max-width: 62px;
+        padding: 2px 3px !important;
+    }
+}
+
+/* Ajuste celular: cada nombre completo en una sola línea, sin desbordar la tarjeta. */
+@media(max-width:700px){
+ .figura .nombre {
+    display:block !important; width:100% !important; max-width:100% !important;
+    box-sizing:border-box; padding:2px 1px !important; margin:2px 0 0 !important;
+    font-family:Arial,sans-serif; font-size:8px !important; font-weight:500;
+    line-height:1.15; letter-spacing:-.15px;
+    white-space:nowrap !important; overflow-wrap:normal !important;
+    word-break:normal !important; overflow:hidden; text-overflow:clip;
+ }
+}
+
+/* GOL destacable + final del partido tipo GAME OVER / victoria. */
+#letreroGol{z-index:80;}
+#letreroGol span{
+  width:max-content;max-width:95%;padding:clamp(10px,3vw,30px) clamp(14px,4vw,46px);
+  border:5px solid white;border-radius:23px;white-space:nowrap;
+  font:900 clamp(64px,18vw,184px)/1 'Arial Black',system-ui,sans-serif;
+  color:#152142;background:linear-gradient(135deg,#ffeb4e,#ff8f23);
+  text-shadow:3px 4px 0 #fff7;box-shadow:0 0 0 5px #f97316,0 13px 46px #000b;
+  animation:animacionGol 2.2s ease both;
+}
+#letreroGol span::before,#letreroGol span::after{content:'✦';font-size:.35em;color:#fff;vertical-align:top;margin:0 .06em;}
+#letreroGol.gol-rival span{background:linear-gradient(135deg,#ffabab,#e34848);color:#fff;text-shadow:2px 2px #662; font-size:clamp(37px,10vw,100px);}
+#resultadoFC{position:fixed;inset:0 0 var(--arcade-nav-altura,0px) 0;z-index:1000002;
+ display:grid;place-items:center;padding:clamp(10px,3vw,24px);background:#06142fe8;overflow:auto;}
+#resultadoFC[hidden]{display:none!important;}
+.resultado-tarjeta{width:min(660px,100%);max-height:100%;overflow:auto;text-align:center;
+ border-radius:22px;border:3px solid #4de2ff;padding:clamp(16px,4vw,28px);
+ background:linear-gradient(160deg,#162d66,#0d1941);color:white;
+ box-shadow:0 14px 45px #0009;font-family:system-ui,sans-serif;}
+.resultado-icono{font-size:clamp(38px,10vw,62px);line-height:1;}
+.resultado-tarjeta h2{font:900 clamp(38px,11vw,68px)/1.1 system-ui,sans-serif;margin:10px 0;color:#ffd655;text-shadow:3px 4px #612652;}
+.resultado-tarjeta .subresultado{font-size:clamp(16px,4.4vw,22px);font-weight:750;margin:8px 0 18px;color:#e8f4ff;}
+.resultado-datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0;}
+.resultado-dato{background:#071534;border:1px solid #5c80cf;border-radius:12px;padding:12px 5px;}
+.resultado-dato span{display:block;font:650 clamp(11px,2.8vw,14px)/1.2 system-ui,sans-serif;color:#bdd6ff;}
+.resultado-dato strong{display:block;margin-top:4px;font:900 clamp(26px,7vw,40px)/1 system-ui,sans-serif;}
+.resultado-tarjeta .mensaje-final{font-size:clamp(14px,3.7vw,18px);color:#e0eafe;margin:14px 0;}
+.resultado-acciones{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.resultado-acciones button{background:linear-gradient(135deg,#ffca31,#ff801f);color:#17152a;
+ font-weight:850;border-radius:12px;min-height:44px;}
+.resultado-acciones button.secundario{background:#223b75;color:white;border:1px solid #7b9ddd;}
+@media(max-width:650px){#resultadoFC{padding:10px 10px 14px;} .resultado-acciones button{font-size:14px;padding:10px 12px;} }
+@media(prefers-reduced-motion:reduce){#letreroGol span{animation:none!important;}}
+
+/* Expo Math Arcade: portadas con acceso visible y verde para jugar (v13). */
+
+body #portada:not([hidden]) {
+  height: calc(100dvh - var(--arcade-nav-altura, 54px) - 8px) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+#portada #entrarBienvenida {
+  position: absolute !important; left: 50% !important;
+  bottom: clamp(15px, 3vh, 30px) !important;
+  transform: translateX(-50%) !important;
+  z-index: 12 !important; border: 2px solid #fff !important;
+  border-radius: 14px !important;
+  background: #ffc52e !important; color: #101b3c !important;
+  padding: 11px 23px !important; font-size: clamp(15px,2.4vw,19px) !important;
+  line-height: 1.2 !important; min-height: 46px;
+  box-shadow: 0 5px 0 #936219, 0 5px 15px #000a !important;
+}
+#bienvenida #comenzar {
+  background: #087d42 !important; color: white !important;
+  border: 2px solid #d6ffdf !important; border-radius: 12px !important;
+  box-shadow: 0 4px 0 #064b2a; font-weight: 800;
+}
+@media(max-width:760px){
+  #portada #entrarBienvenida {padding:9px 17px !important;font-size:16px !important;}
+}
+
+
+/* v14: la barra inferior NO puede tapar las acciones ni el formulario. */
+@media(min-width:761px){
+  main{height:calc(100dvh - var(--arcade-nav-altura,54px) - 4px)!important;max-height:calc(100dvh - var(--arcade-nav-altura,54px) - 4px)!important;overflow:hidden!important;}
+  #juego:not([hidden]){height:100%!important;min-height:0!important;max-height:100%!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
+  #juego #escenario{flex:1 1 auto!important;min-height:180px!important;}
+  #panelInferior{flex:0 0 auto!important;max-height:min(35dvh,240px);overflow-y:auto!important;margin-bottom:5px!important;padding:6px 10px!important;}
+  #panelInferior .acciones{margin:4px auto 0!important;}
+  #panelInferior .acciones button{font-size:clamp(13px,1.2vw,16px);padding:7px 12px!important;min-height:36px!important;}
+  #panelInferior #pregunta{font-size:clamp(15px,1.6vw,20px)!important;}
+  #panelInferior #mensaje{font-size:clamp(13px,1.3vw,16px)!important;}
+}
+@media(max-width:760px){
+ #juego:not([hidden]){max-height:calc(100dvh - var(--arcade-nav-altura,54px) - 5px)!important;overflow-y:auto!important;padding-bottom:12px!important;}
+ #juego #escenario{min-height:180px!important;max-height:38dvh!important;}
+ #panelInferior{margin:5px 0 8px!important;padding:7px 6px!important;}
+ #panelInferior .acciones button{font-size:13px!important;padding:8px 11px!important;min-height:38px!important;}
+ #panelInferior .acciones{gap:6px!important;margin:5px auto 6px!important;}
+}
+
+
+
+/* v15: botones más arriba y estilo visual uniforme en Nezaldi FC */
+#bienvenida .acciones-bienvenida{padding-bottom:calc(var(--arcade-nav-altura,54px) + 18px) !important;margin-top:18px !important;}
+#panelInferior .acciones{padding-bottom:calc(var(--arcade-nav-altura,54px) + 12px) !important;margin-bottom:4px !important;}
+#panelInferior{padding-bottom:8px !important;}
+#entrarBienvenida,#regresarBienvenida,#volver,#resultadoPortada,#comenzar,#reiniciar,#resultadoRevancha,#continuar,#controlSonido{
+  border-radius:14px !important;font-weight:900 !important;border:2px solid #fff !important;
+}
+#regresarBienvenida,#volver,#resultadoPortada{background:linear-gradient(180deg,#3e72f2 0%,#1846b9 100%) !important;color:#fff !important;box-shadow:0 5px 0 #0f2f82,0 10px 18px rgba(0,0,0,.16) !important;}
+#comenzar,#reiniciar,#resultadoRevancha{background:linear-gradient(180deg,#1ab864 0%,#0d8b47 100%) !important;color:#fff !important;box-shadow:0 5px 0 #076131,0 10px 18px rgba(0,0,0,.16) !important;}
+#controlSonido{background:linear-gradient(180deg,#ffd26c 0%,#f0a128 100%) !important;color:#342100 !important;border-color:#fff6d6 !important;box-shadow:0 5px 0 #b16f07,0 10px 18px rgba(0,0,0,.15) !important;}
+button:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-1px);} 
+@media(max-width:760px){
+  #bienvenida{padding-bottom:calc(var(--arcade-nav-altura,54px) + 10px) !important;}
+  #bienvenida .acciones-bienvenida{padding-bottom:calc(var(--arcade-nav-altura,54px) + 16px) !important;}
+  #panelInferior .acciones{padding-bottom:calc(var(--arcade-nav-altura,54px) + 16px) !important;}
+}
+
+</style> 
+<link rel="stylesheet" href="../../assets/arcade-nav.css">
+</head> 
+<body>
+<!-- El audio intenta empezar al entrar; si el navegador lo bloquea, se habilita al primer toque en la página. -->
+<button id="controlSonido" type="button" aria-pressed="false" aria-label="Silenciar música">🔇 Silenciar</button>
+<main> 
+<!-- PORTADA: imagen y botón Bienvenida visible abajo, sin desplazarse. -->
+<section id="portada" class="tarjeta">
+    <!-- AQUÍ CAMBIA LA IMAGEN: edita configuracion.portada más abajo. -->
+    <img id="imagenPortada" alt="Portada de Nezaldi FC">
+    <button id="entrarBienvenida" type="button">Bienvenida</button>
+</section>
+<!-- SEGUNDA PANTALLA: textos editables en configuracion, dentro de JavaScript. -->
+<section id="bienvenida" class="tarjeta" hidden aria-labelledby="tituloBienvenida">
+    <div class="bienvenida-contenido">
+        <header class="encabezado-bienvenida">
+        <h1 id="tituloBienvenida" tabindex="-1"></h1>
+        <p id="descripcionBienvenida"></p>
+        <p id="integrantesBienvenida" hidden></p>
+        <p id="datosBienvenida"></p>
+        </header>
+        <div class="cuerpo-bienvenida">
+        <section class="reglas-bienvenida" aria-labelledby="tituloReglas">
+        <h2 id="tituloReglas">Cómo jugar</h2>
+        <!-- JavaScript llena esta lista con las reglas y los tiempos reales del juego. -->
+        <ol id="listaInstrucciones"></ol>
+        </section>
+        <section class="seleccion-bienvenida" aria-labelledby="tituloElegirEquipo">
+        <!-- AQUÍ SE ELIGE EL EQUIPO: los jugadores aparecen después de la portada. -->
+        <h2 id="tituloElegirEquipo">Elige tu equipo</h2>
+        <div id="selectorEquipo">
+            <button id="elegirTigres" class="opcionEquipo" type="button" aria-pressed="false">
+                <img id="miniTigres" alt="Aldi con playera de Tigres">
+                <span>Tigres</span>
+            </button>
+            <div id="zonaComenzar">
+                <p id="textoSeleccion" role="status">Elige Tigres o Rayados. Jugarás contra el otro equipo.</p>
+            </div>
+            <button id="elegirRayados" class="opcionEquipo" type="button" aria-pressed="false">
+                <img id="miniRayados" alt="Aldi con playera de Rayados">
+                <span>Rayados</span>
+            </button>
+        </div>
+        </section>
+        </div>
+        <!-- Esta barra permanece visible: no hace falta bajar para encontrar Jugar. -->
+        <div class="acciones acciones-bienvenida">
+            <!-- Se activa después de elegir Tigres o Rayados. -->
+            <button id="comenzar" type="button" disabled>Jugar</button>
+            <button id="regresarBienvenida" type="button">Volver a portada</button>
+        </div>
+    </div>
+</section>
+<section id="juego" hidden> 
+<div class="hud"> 
+<span><b id="nombreA"></b>: <b id="golesA">0</b> ⚽</span> 
+<span><b id="nombreB"></b>: <b id="golesB">0</b> ⚽</span> 
+<span>⏱ Tiempo: <b id="tiempo">30</b> s</span> 
+<span id="avance"></span> 
+</div> 
+<div id="escenario" aria-label="Escenario del videojuego"> 
+<img id="fondo" alt="Fondo de nuestro videojuego" hidden> 
+<div class="linea" aria-hidden="true"></div> 
+<div class="circulo" aria-hidden="true"></div> 
+<div id="letreroGol" hidden aria-live="assertive"><span>¡GOOOOL!</span></div> 
+<div class="porteria porteria-izquierda" aria-hidden="true"></div>
+<div class="porteria porteria-derecha" aria-hidden="true"></div>
+<div id="figuras"></div> 
+</div> 
+<div id="panelInferior"> 
+<section id="retos" aria-label="Reto matemático"> 
+<p id="pregunta"></p> 
+<form id="formulario" autocomplete="off"> 
+<label for="respuesta">Respuesta:</label> 
+<input id="respuesta" type="text" inputmode="decimal" required> 
+<button id="responder" type="submit">Responder</button> 
+</form> 
+<p id="mensaje" role="status" aria-live="polite"></p> 
+<button id="continuar" type="button" hidden>Siguiente reto</button> 
+</section> 
+<p id="estado" role="status"></p> 
+<p id="ayuda" hidden></p> 
+<div class="acciones"> 
+<button id="reiniciar" type="button">Reiniciar partida</button> 
+<button id="volver" type="button">Volver a portada</button> 
+</div> 
+</div> 
+</section> 
+</main> 
+<!-- Resumen de la partida, sin contar vidas: Nezaldi FC se decide por goles. -->
+<section id="resultadoFC" hidden role="dialog" aria-modal="true" aria-labelledby="resultadoTitulo">
+ <div class="resultado-tarjeta">
+  <div class="resultado-icono" id="resultadoIcono">🏆</div>
+  <h2 id="resultadoTitulo">GAME OVER</h2>
+  <p class="subresultado" id="resultadoSubtitulo"></p>
+  <div class="resultado-datos">
+   <div class="resultado-dato"><span>⚽ Tus goles</span><strong id="resultadoMisGoles">0</strong></div>
+   <div class="resultado-dato"><span>🤝 Pases correctos</span><strong id="resultadoPases">0</strong></div>
+   <div class="resultado-dato"><span>🥅 Goles del rival</span><strong id="resultadoGolesRival">0</strong></div>
+  </div>
+  <p class="mensaje-final" id="resultadoMensaje"></p>
+  <div class="resultado-acciones">
+   <button id="resultadoRevancha" type="button">↻ Revancha</button>
+   <button id="resultadoPortada" type="button" class="secundario">Volver a portada</button>
+  </div>
+ </div>
+</section>
+<script>
+"use strict";
+
+// ===== SONIDOS DE NEZALDI FC =====
+// Los cuatro MP3 están integrados en este HTML: no necesitan otra carpeta de audio.
+const pistasSonido = {"portada": "sonidos/portada.mp3", "bienvenida": "sonidos/bienvenida.mp3", "durantepartida": "sonidos/durantepartida.mp3", "findejuego": "sonidos/findejuego.mp3"};
+// CAMBIA AQUÍ el volumen general: 0 = silencio y 1 = máximo.
+const volumenSonido = 0.35;
+// Efecto de GOL original, separado de la música (archivos previos solo tienen pistas de ambiente).
+const efectoGolFC = new Audio('sonidos/gol.wav');
+const efectoErrorFC = new Audio('sonidos/incorrecto-mathpixels.mp3');
+efectoErrorFC.preload='none';
+efectoErrorFC.volume=.9;
+function sonidoIncorrectoFC(){
+  if(!sonidoActivado||document.hidden)return;
+  try{efectoErrorFC.pause();efectoErrorFC.currentTime=0;const r=efectoErrorFC.play();if(r&&r.catch)r.catch(()=>{});}catch(e){}
+}
+efectoGolFC.preload='auto';
+efectoGolFC.volume=0.9;
+let temporizadorEfectoGol=null;
+function golConSonido(){
+ if(!sonidoActivado)return;
+ try{efectoGolFC.pause();efectoGolFC.currentTime=0;
+   if(temporizadorEfectoGol)clearTimeout(temporizadorEfectoGol);
+   musica.volume=0.12;
+   const promesa=efectoGolFC.play();if(promesa&&promesa.catch)promesa.catch(()=>{});
+   temporizadorEfectoGol=setTimeout(()=>{musica.volume=volumenSonido},2300);
+ }catch(e){musica.volume=volumenSonido;}
+}
+const musica = new Audio(); // Una sola pista a la vez: los audios nunca se enciman.
+musica.preload = "none";
+musica.volume = volumenSonido;
+let pistaActual = "";
+let sonidoActivado = true;
+let pistaFinalizada = false;
+let intentoAudio = 0;
+const controlSonido = document.getElementById("controlSonido");
+
+function actualizarControlSonido() {
+    controlSonido.textContent = sonidoActivado ? "🔇 Silenciar" : "🔊 Reanudar";
+    controlSonido.setAttribute("aria-pressed", String(!sonidoActivado));
+    controlSonido.setAttribute("aria-label", sonidoActivado ? "Silenciar música" : "Reanudar música");
+    controlSonido.title = sonidoActivado ? "Silenciar música" : "Reanudar música";
+}
+function reproducirPista() {
+    if (!sonidoActivado || !pistaActual || document.hidden || pistaFinalizada) return;
+    const intento = ++intentoAudio;
+    const resultado = musica.play();
+    if (resultado && typeof resultado.catch === "function") {
+        resultado.catch(error => {
+            // Algunos navegadores no permiten música hasta el primer toque; nunca mostrar 'Activar sonido'.
+            if (intento !== intentoAudio || error.name === "AbortError" || error.name === "NotAllowedError") return;
+            console.warn("No se pudo reproducir el sonido:", error);
+        });
+    }
+}
+function cambiarMusica(pista, reiniciar = false) {
+    if (pistaActual !== pista || reiniciar) {
+        ++intentoAudio;
+        musica.pause();
+        pistaActual = pista;
+        pistaFinalizada = false;
+        musica.src = pistasSonido[pista];
+        musica.currentTime = 0;
+        musica.loop = pista !== "findejuego";
+    }
+    reproducirPista();
+}
+controlSonido.addEventListener("click", () => {
+    sonidoActivado = !sonidoActivado;
+    if (sonidoActivado) reproducirPista();
+    else { ++intentoAudio; musica.pause(); efectoGolFC.pause(); efectoErrorFC.pause(); }
+    actualizarControlSonido();
+});
+// La música de portada se intenta reproducir de inmediato. Si el navegador bloquea
+// el inicio automático, cualquier primer toque o tecla la inicia sin un botón de activación.
+function desbloquearAlInteractuar(evento) {
+    if (evento.target?.closest?.("#controlSonido")) return;
+    if (sonidoActivado && musica.paused) reproducirPista();
+}
+document.addEventListener("pointerdown", desbloquearAlInteractuar, {capture:true});
+document.addEventListener("keydown", desbloquearAlInteractuar, {capture:true});
+musica.addEventListener("ended", () => {if (!musica.loop) pistaFinalizada=true;});
+document.addEventListener("visibilitychange", () => {
+    ++intentoAudio;
+    if (document.hidden) musica.pause();
+    else reproducirPista();
+});
+window.addEventListener("pagehide", () => { ++intentoAudio; musica.pause(); });
+window.addEventListener("pageshow", () => { reproducirPista(); });
+cambiarMusica("portada");
+actualizarControlSonido();
+// ===== FIN DEL CONTROL DE SONIDOS =====
+
+
+let equipoElegido = "";
+
+function seleccionarEquipo(equipo) {
+    equipoElegido = equipo;
+
+    const botonTigres = document.getElementById("elegirTigres");
+    const botonRayados = document.getElementById("elegirRayados");
+    const texto = document.getElementById("textoSeleccion");
+    const comenzar = document.getElementById("comenzar");
+
+    botonTigres.classList.toggle("seleccionado", equipo === "tigres");
+    botonRayados.classList.toggle("seleccionado", equipo === "rayados");
+
+    if (equipo === "tigres") {
+        texto.textContent = "Elegiste Tigres. Tu rival será Rayados.";
+    } else {
+        texto.textContent = "Elegiste Rayados. Tu rival será Tigres.";
+    }
+
+    botonTigres.setAttribute("aria-pressed", String(equipo === "tigres"));
+    botonRayados.setAttribute("aria-pressed", String(equipo === "rayados"));
+    comenzar.disabled = false; // Ya puede comenzar desde la bienvenida.
+}
+
+document.getElementById("elegirTigres").addEventListener("click", () => seleccionarEquipo("tigres"));
+document.getElementById("elegirRayados").addEventListener("click", () => seleccionarEquipo("rayados"));
+
+
+// ===== EDITEN SOLO ESTA ZONA PARA IMÁGENES, FONDO Y NOMBRES =====
+const configuracion = {
+    // ===== AQUÍ CAMBIAN LOS TEXTOS DE BIENVENIDA =====
+    bienvenida: "¡Bienvenidos a Nezaldi FC!", // Título de la segunda pantalla.
+    descripcionBienvenida: "Pon a prueba tus habilidades matemáticas en la cancha. Elige tu equipo, completa los pases y resuelve los retos para marcar goles.",
+    integrantes: "", // Escriban aquí sus nombres entre comillas; vacío oculta este renglón.
+    datosEquipo: "Colegio Nezaldi · Proyecto Math Arcade", // Pueden poner materia, grado y grupo.
+    titulo: "Nezaldi FC", // CAMBIA: nombre del juego en la pestaña.
+    portada: "NEZALDIFCportada.webp", // CAMBIA: imagen inicial.
+
+    nombreTigres: "Tigres", // CAMBIA: nombre mostrado si el usuario elige Tigres.
+    nombreRayados: "Rayados", // CAMBIA: nombre mostrado si el usuario elige Rayados.
+
+
+    imagenTigres: "aldi-tigres.webp", // CAMBIA: playera de Tigres.
+    imagenRayados: "aldi-rayados.webp", // CAMBIA: playera de Rayados.
+
+
+    // ===== CAMBIA AQUÍ LOS NOMBRES DE LOS JUGADORES =====
+    // Los primeros 4 son jugadores de campo y el quinto es el portero.
+    jugadoresTigres: ["Joaquim", "M. Lainez", "Brunetta", "D.Lainez", "Nahuel"],
+    jugadoresRayados: ["Cuypers", "Rossi", "Orbelin", "Toro", "Andrada"],
+
+    cancha: "cancha.webp", // OPCIONAL: agrega aquí la imagen de cancha, por ejemplo "imagenes/cancha.webp".
+    ajusteCancha: "fill", // Mantiene visibles las dos porterías de cancha.webp y coincide con las posiciones de abajo.
+    balon: "", // OPCIONAL: agrega una imagen de balón, por ejemplo "imagenes/balon.webp".
+
+    pasesNecesarios: 5,
+    robosNecesarios: 3,
+    erroresPermitidos: 2,
+    tiempoPase: 30,
+    tiempoJerarquia: 30,
+    tiempoEcuacion: 30,
+    tiempoDefensa: 30,
+    golesParaGanar: 5,
+};
+document.getElementById("miniTigres").src = configuracion.imagenTigres;
+document.getElementById("miniRayados").src = configuracion.imagenRayados;
+
+// El equipo que no elijas será automáticamente tu rival.
+// ===== DESDE AQUÍ YA NO NECESITAN CAMBIAR NADA =====
+
+const operaciones = [
+    ["8 + 4 × 3", 20],
+    ["18 − 6 ÷ 2", 15.0],
+    ["7 × 5 + 12", 47],
+    ["24 ÷ 6 + 9", 13.0],
+    ["15 + 3 × 4 − 2", 25],
+    ["30 − 5 × 4 + 6", 16],
+    ["8 × 3 − 10 ÷ 2", 19.0],
+    ["20 + 16 ÷ 4 × 2", 28.0],
+    ["(8 + 4) × 3", 36],
+    ["36 ÷ (6 + 3)", 4.0],
+    ["5 × (7 − 3) + 6", 26],
+    ["24 − (8 ÷ 2) × 3", 12.0],
+    ["(15 + 5) ÷ 4 + 7", 12.0],
+    ["6 × (4 + 2) − 8", 28],
+    ["40 ÷ 5 + 3 × 6", 26.0],
+    ["18 + (12 − 4) × 2", 34],
+    ["(9 − 3) × 4 + 5", 29],
+    ["50 − 6 × (5 + 2)", 8],
+    ["7 + 3 × (10 − 6)", 19],
+    ["(16 ÷ 4) + 5 × 3", 19.0],
+];
+const ecuaciones = [
+    ["x + 7 = 15", 8],
+    ["x − 9 = 18", 27],
+    ["4x = 28", 7],
+    ["x / 5 = 6", 30],
+    ["2x + 5 = 17", 6],
+    ["3x − 4 = 20", 8],
+    ["5x + 8 = 33", 5],
+    ["6x − 7 = 29", 6],
+    ["2x + 9 = 25", 8],
+    ["4x − 6 = 22", 7],
+    ["3x + 12 = 30", 6],
+    ["7x − 5 = 37", 6],
+    ["5x + 15 = 40", 5],
+    ["8x − 10 = 46", 7],
+    ["2x + 4 = 3x − 5", 9],
+    ["4x − 7 = 2x + 9", 8],
+    ["5x + 3 = 3x + 15", 6],
+    ["6x − 8 = 4x + 10", 9],
+    ["3(x + 2) = 21", 5],
+    ["2(x − 4) = 16", 12],
+];
+const divisiones = [
+    ["48 ÷ 6", 8.0],
+    ["63 ÷ 7", 9.0],
+    ["72 ÷ 8", 9.0],
+    ["81 ÷ 9", 9.0],
+    ["56 ÷ 7", 8.0],
+    ["96 ÷ 8", 12.0],
+    ["84 ÷ 6", 14.0],
+    ["108 ÷ 9", 12.0],
+    ["120 ÷ 8", 15.0],
+    ["132 ÷ 11", 12.0],
+    ["144 ÷ 12", 12.0],
+    ["126 ÷ 7", 18.0],
+    ["156 ÷ 12", 13.0],
+    ["135 ÷ 9", 15.0],
+    ["168 ÷ 14", 12.0],
+    ["60 ÷ 6", 10.0],
+    ["70 ÷ 7", 10.0],
+    ["80 ÷ 8", 10.0],
+    ["90 ÷ 9", 10.0],
+    ["100 ÷ 10", 10.0],
+];
+
+
+function nombreJugador() {
+    return equipoElegido === "rayados" ? configuracion.nombreRayados : configuracion.nombreTigres;
+}
+function nombreRival() {
+    return equipoElegido === "tigres" ? configuracion.nombreRayados : configuracion.nombreTigres;
+}
+function imagenJugador() {
+    return equipoElegido === "rayados" ? configuracion.imagenRayados : configuracion.imagenTigres;
+}
+function imagenRival() {
+    return equipoElegido === "tigres" ? configuracion.imagenRayados : configuracion.imagenTigres;
+}
+
+// Jugadores de campo alineados en dos filas (22 y 70) y cuatro columnas.
+// Los dos porteros quedan alineados a la misma altura (45).
+// En cada pareja: [posición horizontal, posición vertical].
+// El quinto jugador de cada equipo es el portero: queda frente a la boca de su portería en cancha.webp.
+// Se conserva cancha.webp: la imagen enviada es una captura de referencia con jugadores y recuadros rojos.
+const posicionesA = [[18,22],[39,22],[39,70],[82,22],[8,45]];
+const posicionesB = [[18,70],[61,22],[61,70],[82,70],[92,45]];
+
+const buscar = (id) => document.getElementById(id);
+let golesA = 0;
+let golesB = 0;
+let pasesTotales = 0;
+let temporizadorFinalFC=null;
+let pases = 0;
+let robos = 0;
+let errores = 0;
+let etapa = "pases";
+let pendiente = false;
+let activo = false;
+let preguntaActual = null;
+let reloj = null;
+let venceEn = 0;
+let figuras = [];
+let movil = null;
+function detenerTiempo() {
+    clearInterval(reloj);
+    reloj = null;
+}
+function actualizarTiempo() {
+    if (!activo || pendiente) { detenerTiempo(); return; }
+    const restante = Math.max(0, venceEn - Date.now());
+    buscar("tiempo").textContent = Math.ceil(restante / 1000);
+    if (restante <= 0) { resolver(false, "Tiempo agotado."); }
+}
+function iniciarTiempo(segundos) {
+    detenerTiempo();
+    venceEn = Date.now() + segundos * 1000;
+    buscar("tiempo").textContent = segundos;
+    reloj = setInterval(actualizarTiempo, 100);
+}
+function avisoImagen(ruta) {
+    buscar("ayuda").hidden = false;
+    buscar("ayuda").textContent += "No se encontró " + ruta + ". Revisa nombre, carpeta y extensión. ";
+}
+function crearFigura(nombre, ruta, emoji, x, y, clase) {
+    const elemento = document.createElement("div");
+    elemento.className = "figura " + clase;
+    const dibujo = document.createElement("span");
+    dibujo.className = "emoji";
+    dibujo.textContent = emoji;
+    dibujo.setAttribute("role", "img");
+    dibujo.setAttribute("aria-label", nombre);
+    elemento.append(dibujo);
+    if (ruta) {
+        const foto = document.createElement("img");
+        foto.alt = nombre;
+        foto.hidden = true;
+        foto.onload = () => { foto.hidden = false; dibujo.hidden = true; };
+        foto.onerror = () => { foto.hidden = true; avisoImagen(ruta); };
+        foto.src = ruta;
+        elemento.append(foto);
+    }
+    if (clase !== "movil") {
+        const etiqueta = document.createElement("small");
+        etiqueta.className = "nombre";
+        etiqueta.textContent = nombre;
+        elemento.append(etiqueta);
+    }
+    buscar("figuras").append(elemento);
+    // En móvil adapta nombres largos sin dividirlos en varias líneas.
+    const etiquetaMovil=elemento.querySelector('.nombre');
+    if(etiquetaMovil && window.matchMedia('(max-width:700px)').matches){
+      for(let tam=8; tam>=6.2; tam-=.3){
+        etiquetaMovil.style.setProperty('font-size',tam+'px','important');
+        if(etiquetaMovil.scrollWidth<=etiquetaMovil.clientWidth+1)break;
+      }
+    }
+    const figura = { elemento, x, y };
+    figuras.push(figura);
+    return figura;
+}
+function colocar() {
+    const cancha = buscar("escenario");
+    figuras.forEach((f) => {
+        f.elemento.style.left = f.x / 100 * Math.max(0, cancha.clientWidth - f.elemento.offsetWidth) + "px";
+        f.elemento.style.top = f.y / 100 * Math.max(0, cancha.clientHeight - f.elemento.offsetHeight) + "px";
+    });
+}
+function llevarBalon(x, y) {
+    movil.x = x;
+    movil.y = y;
+    colocar();
+}
+function juntoA(posicion) {
+    llevarBalon(Math.min(97, posicion[0] + 4), Math.min(92, posicion[1] + 12));
+}
+function marcador() {
+    buscar("golesA").textContent = golesA;
+    buscar("golesB").textContent = golesB;
+    const textos = { pases: "Pases: " + pases + "/" + configuracion.pasesNecesarios, jerarquia: "Jerarquía de operaciones", ecuacion: "Ecuación para tirar", defensa: "Defensa: " + robos + "/" + configuracion.robosNecesarios + " aciertos · " + errores + "/" + configuracion.erroresPermitidos + " errores", final: "Fin del partido" };
+    buscar("avance").textContent = textos[etapa];
+}
+function elegir(lista) {
+    return lista[Math.floor(Math.random() * lista.length)];
+}
+function nuevoAtaque() {
+    etapa = "pases";
+    pases = 0;
+    robos = 0;
+    errores = 0;
+    juntoA(posicionesA[0]);
+}
+function prepararReto() {
+    if (!activo) { return; }
+    pendiente = false;
+    let segundos;
+    let prefijo;
+    if (etapa === "pases") {
+        const a = Math.floor(Math.random() * 10) + 3;
+        const b = Math.floor(Math.random() * 10) + 3;
+        preguntaActual = [a + " × " + b, a * b];
+        prefijo = "Resuelve para dar el pase: ";
+        segundos = configuracion.tiempoPase;
+    } else if (etapa === "jerarquia") {
+        preguntaActual = elegir(operaciones);
+        prefijo = "Prepara el tiro: ";
+        segundos = configuracion.tiempoJerarquia;
+    } else if (etapa === "ecuacion") {
+        preguntaActual = elegir(ecuaciones);
+        prefijo = "Encuentra x para marcar: ";
+        segundos = configuracion.tiempoEcuacion;
+    } else {
+        preguntaActual = elegir(divisiones);
+        prefijo = "Recupera el balón: ";
+        segundos = configuracion.tiempoDefensa;
+    }
+    buscar("pregunta").textContent = prefijo + preguntaActual[0];
+    buscar("respuesta").value = "";
+    buscar("respuesta").disabled = false;
+    buscar("responder").disabled = false;
+    buscar("continuar").hidden = true;
+    buscar("mensaje").textContent = "";
+    marcador();
+    iniciarTiempo(segundos);
+    buscar("respuesta").focus({ preventScroll: true });
+}
+function mostrarGol(texto = "¡GOOOOL!") {
+    const caja = buscar("letreroGol");
+    const textoGol = caja.querySelector("span");
+    textoGol.textContent = texto;
+    caja.classList.toggle("gol-rival",texto.includes("RIVAL"));
+    if(!texto.includes("RIVAL")) golConSonido();
+    caja.hidden = false;
+    textoGol.style.animation = "none";
+    void textoGol.offsetWidth;
+    textoGol.style.animation = "animacionGol 2.2s ease both";
+    clearTimeout(mostrarGol.temporizador);
+    mostrarGol.temporizador = setTimeout(() => { caja.hidden = true; }, 2200);
+}
+
+function terminar() {
+    cambiarMusica("findejuego", true);
+    activo = false;
+    etapa = "final";
+    detenerTiempo();
+    buscar("continuar").hidden = true;
+    const ganaste = golesA >= configuracion.golesParaGanar;
+    buscar("mensaje").textContent = ganaste ? "¡Ganaste el partido!" : "El equipo rival ganó. ¡Inténtalo nuevamente!";
+    buscar("estado").textContent = "Resultado final: " + nombreJugador() + " " + golesA + " — " + golesB + " " + nombreRival();
+    marcador();
+    // Primero se ve el GOOOOL sobre la cancha; luego aparece el resumen.
+    clearTimeout(temporizadorFinalFC);
+    temporizadorFinalFC=setTimeout(()=>{
+      buscar('resultadoIcono').textContent=ganaste?'🏆':'⚽';
+      buscar('resultadoTitulo').textContent=ganaste?'¡CAMPEONES!':'GAME OVER';
+      buscar('resultadoSubtitulo').textContent=ganaste?'¡Ganó '+nombreJugador()+'!':'¡Esta vez ganó '+nombreRival()+'!';
+      buscar('resultadoMisGoles').textContent=golesA;
+      buscar('resultadoPases').textContent=pasesTotales;
+      buscar('resultadoGolesRival').textContent=golesB;
+      buscar('resultadoMensaje').textContent=ganaste?'¡Excelente trabajo! Superaste los retos matemáticos.':'¡Buen esfuerzo! Intenta otra partida y consigue la revancha.';
+      buscar('resultadoFC').hidden=false;
+      buscar('resultadoRevancha').focus();
+    },2100);
+}
+function resolver(correcto, motivo = "") {
+    if (!activo || pendiente) { return; }
+    pendiente = true;
+    detenerTiempo();
+    buscar("respuesta").disabled = true;
+    buscar("responder").disabled = true;
+    if(!correcto) sonidoIncorrectoFC();
+    let mensaje = correcto ? "¡Correcto! " : (motivo || "Respuesta incorrecta.") + " ";
+    if (etapa === "defensa") {
+        if (correcto) { robos += 1; } else { errores += 1; }
+        juntoA(posicionesB[(robos + errores) % 4]);
+        if (robos >= configuracion.robosNecesarios) {
+            mensaje += "¡Recuperaste el balón! Vuelve a completar los cinco pases.";
+            nuevoAtaque();
+        } else if (errores >= configuracion.erroresPermitidos) {
+            golesB += 1;
+            mostrarGol("¡GOL RIVAL!");
+            llevarBalon(8, 51); // Gol dentro de la red izquierda de la imagen.
+            mensaje += "Gol del equipo rival. Tu equipo saca del centro.";
+            etapa = "pases"; pases = 0; robos = 0; errores = 0;
+        } else {
+            mensaje += "Defensa: " + robos + " aciertos y " + errores + " errores.";
+        }
+    } else if (!correcto) {
+        etapa = "defensa";
+        robos = 0; errores = 0;
+        juntoA(posicionesB[0]);
+        mensaje += "Balón para el rival. ¡A defender!";
+    } else if (etapa === "pases") {
+        pases += 1;
+        pasesTotales += 1;
+        const receptor = [1, 2, 3, 0, 3][(pases - 1) % 5];
+        juntoA(posicionesA[receptor]);
+        mensaje += "Pase " + pases + " de " + configuracion.pasesNecesarios + " completado.";
+        if (pases >= configuracion.pasesNecesarios) { etapa = "jerarquia"; mensaje += " Ahora prepara el tiro con jerarquía de operaciones."; }
+    } else if (etapa === "jerarquia") {
+        etapa = "ecuacion";
+        mensaje += "Puedes intentar marcar. El siguiente reto es una ecuación.";
+    } else {
+        golesA += 1;
+        mostrarGol("¡GOOOOL!");
+        llevarBalon(92, 51); // Gol dentro de la red derecha de la imagen.
+        mensaje += "¡GOOOOL! Tu equipo lleva " + golesA + " goles.";
+        etapa = "pases"; pases = 0;
+    }
+    buscar("mensaje").textContent = mensaje;
+    buscar("estado").textContent = mensaje;
+    marcador();
+    if (golesA >= configuracion.golesParaGanar || golesB >= configuracion.golesParaGanar) { terminar(); return; }
+    buscar("continuar").textContent = etapa === "defensa" ? "Continuar defensa" : "Continuar jugada";
+    buscar("continuar").hidden = false;
+}
+function responder(evento) {
+    evento.preventDefault();
+    if (!activo || pendiente) { return; }
+    if (Date.now() >= venceEn) { resolver(false, "Tiempo agotado."); return; }
+    const texto = buscar("respuesta").value.trim();
+    const numero = texto === "" ? NaN : Number(texto.replace(",", "."));
+    if (!Number.isFinite(numero)) { resolver(false, "Debes escribir un número. Cuenta como error."); return; }
+    resolver(Math.abs(numero - preguntaActual[1]) <= 0.000001);
+}
+
+// BIENVENIDA: abre las instrucciones sin iniciar el tiempo ni el partido.
+function abrirBienvenida() {
+    cambiarMusica("bienvenida", true);
+    activo = false; // El jugador todavía no está jugando.
+    detenerTiempo(); // Asegura que ningún cronómetro siga corriendo.
+    buscar("portada").hidden = true;
+    buscar("juego").hidden = true;
+    buscar("bienvenida").hidden = false;
+    buscar("textoSeleccion").textContent = equipoElegido
+        ? "Tu equipo: " + nombreJugador() + ". Rival: " + nombreRival() + "."
+        : "Elige Tigres o Rayados. Jugarás contra el otro equipo.";
+    // Se pueden leer las instrucciones sin haber elegido equipo.
+    buscar("comenzar").disabled = !equipoElegido;
+    buscar("tituloBienvenida").focus(); // Lleva la atención al título de esta pantalla.
+}
+
+function volverAPortada() {
+    clearTimeout(temporizadorFinalFC);
+    buscar('resultadoFC').hidden=true;
+    efectoGolFC.pause();
+    cambiarMusica("portada", true);
+    activo = false; // Detiene la partida al salir.
+    detenerTiempo();
+    buscar("juego").hidden = true;
+    buscar("bienvenida").hidden = true;
+    buscar("portada").hidden = false;
+    // El foco vuelve a la imagen de portada, que funciona como botón de entrada.
+    buscar("entrarBienvenida").focus();
+}
+
+// Arma los textos una sola vez, usando las reglas de configuracion.
+function prepararBienvenida() {
+    buscar("tituloBienvenida").textContent = configuracion.bienvenida;
+    buscar("descripcionBienvenida").textContent = configuracion.descripcionBienvenida;
+    buscar("integrantesBienvenida").textContent = "Integrantes: " + configuracion.integrantes;
+    buscar("integrantesBienvenida").hidden = !configuracion.integrantes.trim();
+    buscar("datosBienvenida").textContent = configuracion.datosEquipo;
+    // Si cambian los tiempos o las metas arriba, las instrucciones se actualizan solas.
+    const instrucciones = [
+        "Elige Tigres o Rayados. Si eliges Tigres, juegas contra Rayados; si eliges Rayados, juegas contra Tigres. Cada equipo tiene cinco jugadores.",
+        "Completa " + configuracion.pasesNecesarios + " pases respondiendo multiplicaciones. Tienes " + configuracion.tiempoPase + " segundos por pase.",
+        "Prepara el tiro resolviendo una operación con jerarquía de operaciones. Tienes " + configuracion.tiempoJerarquia + " segundos.",
+        "Resuelve una ecuación y encuentra el valor de x para marcar gol. Tienes " + configuracion.tiempoEcuacion + " segundos.",
+        "Escribe el resultado y presiona Enter o el botón Responder. Al terminar cada reto, pulsa Continuar jugada o Continuar defensa.",
+        "Si fallas o se agota el tiempo en ataque, el rival recibe el balón y debes defender.",
+        "En defensa, resuelve divisiones en " + configuracion.tiempoDefensa + " segundos por reto. Con " + configuracion.robosNecesarios + " aciertos recuperas el balón; con " + configuracion.erroresPermitidos + " errores, el rival marca un gol.",
+        "Aquí no hay vidas: gana el primer equipo que llegue a " + configuracion.golesParaGanar + " goles."
+    ];
+    const lista = buscar("listaInstrucciones");
+    lista.replaceChildren(); // Limpia la lista antes de escribir las reglas.
+    for (const texto of instrucciones) {
+        const renglon = document.createElement("li"); // Crea un punto de la lista.
+        renglon.textContent = texto; // Coloca el texto de la instrucción.
+        lista.appendChild(renglon); // Lo agrega a las instrucciones visibles.
+    }
+}
+
+function iniciar() {
+    if (!equipoElegido) {
+        document.getElementById("textoSeleccion").textContent = "Primero elige una playera de Aldi.";
+        return;
+    }
+    clearTimeout(temporizadorFinalFC);
+    buscar('resultadoFC').hidden=true;
+    efectoGolFC.pause();musica.volume=volumenSonido;
+    pasesTotales=0;
+    detenerTiempo();
+    buscar("bienvenida").hidden = true; // Oculta las instrucciones al comenzar el partido.
+    buscar("portada").hidden = true; buscar("juego").hidden = false; buscar("nombreA").textContent = nombreJugador(); buscar("nombreB").textContent = nombreRival();
+    cambiarMusica("durantepartida", true);
+    golesA = 0; golesB = 0; activo = true; pendiente = false;
+    figuras = []; buscar("figuras").replaceChildren();
+    buscar("ayuda").hidden = true; buscar("ayuda").textContent = "";
+    buscar("letreroGol").hidden = true;
+    // Los nombres y las playeras siguen al club elegido, incluso al reiniciar.
+    const jugadoresUsuario = equipoElegido === "tigres" ? configuracion.jugadoresTigres : configuracion.jugadoresRayados;
+    const jugadoresRival = equipoElegido === "tigres" ? configuracion.jugadoresRayados : configuracion.jugadoresTigres;
+    posicionesA.forEach((p, i) => crearFigura(jugadoresUsuario[i], imagenJugador(), "👕", p[0], p[1], "equipoA"));
+    posicionesB.forEach((p, i) => crearFigura(jugadoresRival[i], imagenRival(), "👕", p[0], p[1], "equipoB"));
+    movil = crearFigura("Balón", configuracion.balon, "⚽", 12, 70, "movil");
+    nuevoAtaque();
+    buscar("estado").textContent = "Completa cinco pases, supera jerarquía y resuelve x para marcar. Gana el primero en llegar a cinco goles.";
+    prepararReto();
+}
+document.title = 'Math Arcade | Math Pixels';
+buscar("imagenPortada").src = configuracion.portada;
+buscar("imagenPortada").onerror = () => { buscar("imagenPortada").alt = "Agrega tu imagen en: " + configuracion.portada; };
+buscar("nombreA").textContent = ""; buscar("nombreB").textContent = "";
+if (configuracion.cancha) {
+    buscar("fondo").style.objectFit = configuracion.ajusteCancha;
+    buscar("fondo").onload = () => {
+        buscar("fondo").hidden = false;
+        buscar("escenario").classList.add("con-cancha-imagen");
+    };
+    buscar("fondo").onerror = () => {
+        buscar("fondo").hidden = true;
+        buscar("escenario").classList.remove("con-cancha-imagen");
+    };
+    buscar("fondo").src = configuracion.cancha;
+}
+// La imagen de portada abre la bienvenida sin iniciar el partido.
+prepararBienvenida();
+buscar("entrarBienvenida").addEventListener("click", abrirBienvenida);
+// Jugar, dentro de la bienvenida, inicia el partido con el equipo elegido.
+buscar("comenzar").addEventListener("click", iniciar);
+buscar("regresarBienvenida").addEventListener("click", volverAPortada);
+buscar("reiniciar").addEventListener("click", iniciar);
+buscar("formulario").addEventListener("submit", responder);
+buscar("continuar").addEventListener("click", () => {
+    if (!activo || !pendiente) { return; }
+    if (etapa === "pases" && pases === 0) { juntoA(posicionesA[0]); }
+    prepararReto();
+});
+buscar("volver").addEventListener("click", volverAPortada);
+buscar('resultadoRevancha').addEventListener('click',iniciar);
+buscar('resultadoPortada').addEventListener('click',volverAPortada);
+window.addEventListener("resize", colocar);</script> 
+<script src="../../assets/arcade-nav.js"></script>
+</body> 
+</html> 

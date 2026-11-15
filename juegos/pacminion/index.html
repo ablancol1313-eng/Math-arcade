@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Arcade | Math Pixels</title>
+<style>
+
+/* =====================================================
+   1. CAMBIEN LOS COLORES AQUÍ.
+   Pueden escribir nombres: white, black, blue, purple...
+   También pueden usar códigos: #ffffff, #2244aa...
+   ===================================================== */
+:root {
+  --fondo-pagina: #ede2ff;       /* Fondo general. */
+  --fondo-portada: #eeeeee;    /* Portada sin imagen. */
+  --fondo-instrucciones: #ede2ff;
+  --fondo-juego: #eadbff;     /* Alrededor del laberinto. */
+  --fondo-laberinto: #f6efff;   /* Pasillos sin imagen de fondo. */
+  --fondo-panel: #fffafaef;   /* Cuadro donde aparece el texto. */
+  --texto: black;
+  --boton: #dddddd;
+  --texto-boton: black;
+  --pared: #333333;
+  --barrera: #71ff64;
+  --portal: #45dfff;
+  --amarillo: #ffe04c;         /* Jugador si todavía no hay imagen. */
+  --morado: #ac75ff;           /* Perseguidor si todavía no hay imagen. */
+  --tam-personaje: 88%;       /* Tamaño de las imágenes de personajes. */
+}
+
+/* 2. TAMAÑOS DE LETRAS. */
+h1 { font-size: 42px; }
+h2 { font-size: 26px; }
+p, li { font-size: 17px; line-height: 1.5; }
+#operacion { font-size: 32px; text-align: center; margin: 18px 0; }
+
+/* 3. ACOMODO DE LAS PANTALLAS. */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; color: var(--texto); background: var(--fondo-pagina); }
+[hidden] { display: none !important; }
+.pantalla { height: 100dvh; overflow: auto; position: relative; background-position: center; background-size: cover; }
+.centrado { display: grid; place-items: center; padding: 20px; }
+.panel { width: min(850px, 100%); padding: 25px; background: var(--fondo-panel); border: 1px solid #999; }
+.portada { background-color: var(--fondo-portada); text-align: center; }
+#pantallaInstrucciones { background-color: var(--fondo-instrucciones); }
+#imagenPortada { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* cover llena la pantalla; contain muestra la imagen completa. */
+.portada .panel { z-index: 1; align-self: end; width: auto; margin-bottom: 20px; }
+.portada.con-imagen .textoPortada { display: none; }
+.acciones { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+button { font: inherit; cursor: pointer; padding: 10px 16px; color: var(--texto-boton); background: var(--boton); border: 1px solid #777; }
+button:hover { filter: brightness(.93); }
+button:focus-visible, input:focus-visible { outline: 3px solid #2462bc; outline-offset: 2px; }
+button:disabled { opacity: .5; }
+label { display: block; margin: 15px 0 5px; }
+input { width: 100%; padding: 10px; font: inherit; color: var(--texto); background: var(--fondo-panel); border: 1px solid #777; }
+.datos { display: grid; gap: 15px; }
+.dato strong { display: block; margin-bottom: 5px; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
+.leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.muestra { display: inline-block; width: 20px; height: 12px; background: var(--portal); }
+.muestra.verde { background: var(--barrera); }
+
+/* 4. LABERINTO: el fondo se cambia en configuracion, más abajo. */
+#pantallaJuego { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; overflow: hidden; background-color: var(--fondo-juego); }
+header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: min(1100px, 100%); }
+header strong { font-size: 23px; }
+.marcador { display: flex; flex-wrap: wrap; gap: 12px; }
+.zona { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+#tablero { position: relative; aspect-ratio: 21/15; max-width: 1100px; max-height: 100%; background-color: var(--fondo-laberinto); background-position: center; background-size: cover; overflow: hidden; border: 2px solid var(--pared); }
+.casilla { position: absolute; display: grid; place-items: center; font-size: clamp(10px, 2vw, 21px); }
+.pared { background: var(--pared); }
+.barrera::after { content: '?'; position: absolute; inset: 10% 28%; background: var(--barrera); color: black; display: grid; place-items: center; }
+.barrera.abierta::after { opacity: .2; content: '✓'; }
+.portal::after { content: '↔'; position: absolute; inset: 13% 8%; background: var(--portal); color: black; display: grid; place-items: center; }
+.meta { background: var(--portal); color: black; }
+.meta::after { content: '★'; }
+/* BANANAS: el círculo blanco las hace visibles sobre cualquier fondo.
+   Pueden cambiar white por otro color. */
+.banana {
+  font-size: clamp(12px, 2.2vw, 26px);
+  background: white;
+  border: 1px solid #777;
+  border-radius: 50%;
+  transform: scale(.82);
+  text-shadow: 0 1px 1px #0005;
+}
+.actor { position: absolute; display: grid; place-items: center; z-index: 5; pointer-events: none; transition: left .11s linear, top .11s linear; }
+.actor img { position: absolute; width: var(--tam-personaje); height: var(--tam-personaje); object-fit: contain; z-index: 2; }
+.sustituto { width: 72%; height: 87%; border-radius: 40%; background: var(--amarillo); border: 1px solid black; color: black; display: grid; place-items: center; font-size: clamp(9px, 2vw, 22px); }
+.enemigo .sustituto { background: var(--morado); }
+.actor.protegido { opacity: .6; }
+.pie { width: min(1100px, 100%); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#mensaje { margin: 0; font-size: 14px; }
+.controles { display: flex; gap: 5px; }
+.controles button { touch-action: none; user-select: none; }
+
+/* 5. VENTANAS DE RETOS, PAUSA Y RESULTADO. */
+dialog { width: min(600px, calc(100% - 25px)); max-height: 90dvh; overflow: auto; padding: 25px; border: 1px solid #777; color: var(--texto); background: var(--fondo-panel); }
+dialog::backdrop { background: #0008; }
+#avisoReto { min-height: 24px; }
+@media (max-width: 600px) {
+  .panel { padding: 16px; }
+  .pie { flex-direction: column; }
+  .marcador { font-size: 12px; gap: 8px; }
+  .controles button { padding: 10px 15px; }
+  h1 { font-size: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .actor { transition: none; } }
+
+/* Compatibilidad táctil y tamaño legible en celular */
+html{-webkit-text-size-adjust:100%}
+button,input,select{touch-action:manipulation}
+button{min-height:36px}
+@media(max-width:650px){button{max-width:100%}input{max-width:100%;font-size:16px}img{max-width:100%}}
+
+/* AJUSTES PARA CELULARES, TABLETAS Y PANTALLAS TÁCTILES — OCTUBRE 2026 */
+
+html,body{max-width:100%;overflow-x:clip}
+button{min-height:44px;touch-action:manipulation}input{font-size:16px;min-height:44px}
+.controles button{min-width:49px;min-height:49px;touch-action:none;user-select:none;-webkit-user-select:none}
+@media(max-width:700px){
+ #pantallaJuego{height:100dvh;min-height:0;overflow:hidden;padding:6px;gap:5px}
+ #pantallaJuego header{gap:4px;font-size:12px}
+ #pantallaJuego header strong{font-size:17px}
+ .marcador{gap:5px;font-size:12px}
+ #pantallaJuego .zona{min-height:0;flex:1 1 auto}
+ #pantallaJuego #tablero{border-width:1px}
+ .pie{flex:0 0 auto;margin-bottom:env(safe-area-inset-bottom);gap:5px}
+ .controles{justify-content:center;width:100%;gap:9px}
+ .controles button{padding:8px 14px;min-width:52px;min-height:51px;font-size:22px}
+ dialog{max-height:85dvh;padding:14px}
+ .centrado{padding:10px}.centrado .panel{max-height:90dvh;overflow:auto;padding:14px}
+ .portada #imagenPortada{object-fit:contain;background:#10112e}
+}
+@media(max-width:900px) and (orientation:landscape){
+ .controles button{min-width:40px;min-height:40px;padding:5px 8px}
+ #pantallaJuego header strong{font-size:15px}
+ .pie{flex-direction:row}
+}
+
+
+/* Salida a la portada principal del proyecto desde cualquier pantalla */
+.volver-arcade {
+ position:fixed;top:10px;left:12px;z-index:999999;min-height:38px;
+ display:inline-flex;align-items:center;gap:5px;padding:7px 12px;
+ border:2px solid rgba(255,255,255,.7);border-radius:12px;
+ background:rgba(9,22,51,.92);color:white;text-decoration:none;
+ font:700 13px/1.2 system-ui,Arial,sans-serif;box-shadow:0 2px 10px #0009;
+}
+.volver-arcade:hover,.volver-arcade:focus-visible{background:#2252a2;outline:2px solid #fff;}
+@media(max-width:600px){.volver-arcade{top:8px;left:7px;padding:6px 8px;min-height:36px;font-size:12px;}}
+
+
+/* Color lilita claro, sin alterar los colores de paredes, personajes o retos. */
+#pantallaJuego{background:#eadbff!important;}
+#pantallaInstrucciones{background-color:#ede2ff;}
+@media(max-width:700px){
+ #pantallaJuego{height:calc(100dvh - var(--arcade-nav-altura))!important;}
+ #pantallaJuego .zona{flex:1 1 auto;}
+ #pantallaJuego .pie{margin-bottom:5px!important;padding-bottom:4px;}
+ .controles button{min-height:45px!important;}
+}
+
+/* Portada limpia: sin barra blanca, solo el botón Bienvenida. */
+#pantallaPortada .panel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--arcade-nav-altura, 54px) + 16px);
+  transform: translateX(-50%);
+  z-index: 4;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+#pantallaPortada .panel .acciones {margin:0;}
+#pantallaPortada #irInstrucciones {
+  padding: 12px 26px;
+  min-height: 46px;
+  font-weight: 800;
+  font-size: clamp(15px, 3vw, 19px);
+  border: 2px solid rgba(255,255,255,.8);
+  border-radius: 15px;
+  color: #fff;
+  background: linear-gradient(135deg,#7c3bed,#a94dff);
+  box-shadow: 0 4px 0 #493085, 0 8px 22px #1710276b;
+}
+@media(max-width:760px){
+ #pantallaPortada {padding:0;}
+ #pantallaPortada .panel {bottom:calc(var(--arcade-nav-altura, 54px) + 10px);}
+ #pantallaPortada #irInstrucciones {padding:10px 22px;min-height:44px;font-size:16px;}
+}
+
+/* Letras redondeadas y llamativas estilo arcade, sin descargar fuentes externas. */
+#pantallaPortada .nombreJuego, #pantallaInstrucciones h1, #pantallaInstrucciones h2,
+#pantallaJuego header strong, #pantallaJuego .marcador, dialog h2, dialog h3 {
+ font-family:ui-rounded,'Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;
+ font-weight:900;letter-spacing:.35px;
+ text-shadow:1px 2px 0 #c9aaff;
+}
+#pantallaInstrucciones h1, #pantallaInstrucciones h2, dialog h2 {color:#5926ac;text-shadow:1px 2px 0 #dbc7ff;}
+#pantallaJuego header strong{color:#4c268b;letter-spacing:.6px;}
+#pantallaPortada #irInstrucciones, #pantallaInstrucciones button, #pantallaJuego button, dialog button {
+ font-family:ui-rounded,'Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;
+ font-weight:800;letter-spacing:.2px;
+ border-radius:12px;
+}
+
+/* Expo Math Arcade: portadas con acceso visible y verde para jugar (v13). */
+
+body #pantallaPortada:not([hidden]){
+  height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;
+  max-height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+#pantallaPortada .panel{
+  position:absolute !important;left:50% !important;bottom:clamp(15px,3vh,27px) !important;
+  transform:translateX(-50%) !important;max-width:calc(100% - 20px) !important;
+}
+#pantallaPortada #irInstrucciones{
+  background:#7633d4 !important;color:#fff !important;
+  border:2px solid #fff !important;border-radius:14px !important;
+  font-weight:850 !important;padding:11px 24px !important;
+  font-size:clamp(15px,2.3vw,19px) !important;
+  min-height:46px !important;box-shadow:0 5px 0 #41207a,0 5px 15px #0008;
+}
+#pantallaInstrucciones #jugarInstrucciones{
+  background:#087d42 !important;color:white !important;border:2px solid #d6ffdf !important;
+  border-radius:12px !important;font-weight:800 !important;box-shadow:0 4px 0 #064b2a;
+}
+@media(max-width:760px){
+  #pantallaPortada .panel{bottom:16px !important;}
+}
+
+
+
+/* v15: botones consistentes */
+button:not(.opcionAvatar){border-radius:14px !important;font-weight:900 !important;border:2px solid #fff !important;}
+.volverPortada,#salir,#portadaFinal{background:linear-gradient(180deg,#3e72f2 0%,#1846b9 100%) !important;color:#fff !important;box-shadow:0 5px 0 #0f2f82,0 10px 18px rgba(0,0,0,.16) !important;}
+#jugarInstrucciones,#reintentar,#continuar,#irInstrucciones{background:linear-gradient(180deg,#1ab864 0%,#0d8b47 100%) !important;color:#fff !important;box-shadow:0 5px 0 #076131,0 10px 18px rgba(0,0,0,.16) !important;}
+#pausar,#reiniciarPausa{background:linear-gradient(180deg,#ffd26c 0%,#f0a128 100%) !important;color:#342100 !important;border-color:#fff6d6 !important;box-shadow:0 5px 0 #b16f07,0 10px 18px rgba(0,0,0,.15) !important;}
+
+
+/* Música Pacminion: controles consistentes, sin cubrir el botón Bienvenida. */
+.boton-sonido-pac{
+  padding:8px 12px !important;min-height:42px !important;
+  background:linear-gradient(180deg,#ffd56f,#f3a530) !important;
+  color:#322500 !important;border:2px solid #fff4d7 !important;
+  border-radius:13px !important;font:800 13px/1.2 ui-rounded,'Trebuchet MS',system-ui,sans-serif !important;
+  box-shadow:0 4px 0 #ab7118,0 6px 14px #0003 !important;
+}
+.sonido-flotante-pac{position:absolute;top:12px;right:12px;z-index:15;}
+#pantallaJuego header > div:last-child{display:flex;flex-wrap:wrap;align-items:center;gap:7px;}
+@media(max-width:700px){
+  .sonido-flotante-pac{top:8px;right:8px;font-size:12px !important;padding:7px 9px !important;}
+  #pantallaJuego header .boton-sonido-pac{font-size:11px !important;padding:7px !important;min-height:38px !important;}
+}
+
+</style>
+<link rel="stylesheet" href="../../assets/arcade-nav.css">
+</head>
+<body>
+<!-- PANTALLA 1: PORTADA. La ruta de su imagen se cambia en configuracion, abajo. -->
+<section id="pantallaPortada" class="pantalla centrado portada">
+<button type="button" class="boton-sonido-pac sonido-flotante-pac" aria-label="Silenciar música de Pacminion" aria-pressed="false">🔊 Silenciar</button>
+<img id="imagenPortada" alt="Portada del videojuego Pacminion" hidden>
+<div class="panel"><div class="textoPortada"><!-- EDITEN EL TÍTULO Y LA FRASE DE PORTADA. -->
+<h1 class="nombreJuego">PACMINION</h1>
+<p><span id="frasePortada"></span></p></div>
+<div class="acciones"><button id="irInstrucciones">Bienvenida</button><button id="jugarPortada" class="secundario" hidden>Comenzar</button></div></div>
+</section>
+<!-- PANTALLA 2: BIENVENIDA, EQUIPO E INSTRUCCIONES, TODO JUNTO.
+     Los textos se cambian en configuracion, abajo.
+     NO BORREN los id: permiten que funcionen los botones y los textos. -->
+<section id="pantallaInstrucciones" class="pantalla centrado" hidden>
+<button type="button" class="boton-sonido-pac sonido-flotante-pac" aria-label="Silenciar música de Pacminion" aria-pressed="false">🔊 Silenciar</button>
+<div class="panel">
+  <h2 id="bienvenida"></h2>
+  <p id="creditosEquipoPacminion" hidden><b>Integrantes:</b> <strong id="creadores"></strong></p>
+  <p id="escuela"></p>
+  <p id="descripcion"></p>
+  <!-- NO MOVER: esta imagen aparece al descomentar imagenInstrucciones en configuracion. -->
+  <img id="imagenInstrucciones" alt="Instrucciones del videojuego diseñadas por el equipo" hidden style="display:block;width:100%;max-height:40vh;object-fit:contain;margin:15px auto">
+  <h2>¿Cómo se juega?</h2><!-- ESCRIBAN SUS INSTRUCCIONES EN configuracion.instrucciones.
+     Cada frase entre comillas es una instrucción. Pueden agregar más.
+     Reglas del motor para redactarlas: flechas/WASD, evitar al morado,
+     tres vidas por errores, cinco retos por nivel, bananas y estrella,
+     barreras/portales con operaciones y cinco niveles.
+     Cambiar este texto NO cambia las reglas programadas. -->
+<!-- Las instrucciones se escriben en configuracion.instrucciones, abajo. -->
+<ol id="listaInstrucciones"></ol>
+<!-- Pueden escribir aquí otra indicación o borrar este párrafo. -->
+<p></p>
+<div class="leyenda"><span><i class="muestra verde"></i> Barrera matemática</span><span><i class="muestra"></i> Portal matemático</span><span>🍌 Banana · ★ Salida</span></div><label for="nombreJugador">Nombre del jugador (opcional)</label>
+<input id="nombreJugador" maxlength="35" placeholder="Escribe tu nombre" autocomplete="off">
+<div class="acciones"><button id="jugarInstrucciones">Jugar</button><button class="secundario volverPortada">Volver a portada</button></div></div></section>
+<!-- PANTALLA 3: JUEGO. NO MOVER LOS id NI LOS BOTONES. El laberinto se construye con el MAPA del JavaScript. -->
+<section id="pantallaJuego" class="pantalla" hidden><header><strong class="nombreJuego">PACMINION</strong><div class="marcador"><span>Nivel <b id="nivel">1/5</b></span><span>⏱ <b id="tiempo">03:45</b></span><span>🍌 <b id="bananas">0/0</b></span><span>Retos: <b id="aciertos">0</b>/5</span><span>Vidas: <b id="vidas">3</b></span><span>Puntos: <b id="puntos">0</b></span></div><div><button type="button" class="boton-sonido-pac" aria-label="Silenciar música de Pacminion" aria-pressed="false">🔊 Silenciar</button><button id="pausar" class="secundario">Pausar</button><button id="salir" class="secundario">Portada</button></div></header><div class="zona"><div id="tablero" role="img" aria-label="Laberinto: controla al minion amarillo para escapar del morado."></div></div><div class="pie"><p id="mensaje" role="status">¡Que no te atrape!</p><div class="controles" aria-label="Controles de movimiento"><button data-dir="izquierda" aria-label="Izquierda">←</button><button data-dir="arriba" aria-label="Arriba">↑</button><button data-dir="abajo" aria-label="Abajo">↓</button><button data-dir="derecha" aria-label="Derecha">→</button></div></div></section>
+<dialog id="dialogoReto" aria-labelledby="tituloReto"><form id="formularioReto"><p class="etiqueta">PERSECUCIÓN EN PAUSA</p><h2 id="tituloReto">Reto matemático</h2><p>Tiempo para responder: <b id="relojReto"></b> s</p><div id="operacion"></div><img id="imagenReto" alt="Diagrama de conjuntos del reto" hidden style="display:block;max-width:100%;max-height:32vh;margin:auto;object-fit:contain"><div id="opcionesReto" style="white-space:pre-line;line-height:1.8"></div><label for="respuesta">Tu respuesta</label><input id="respuesta" type="text" required autocomplete="off" placeholder="Número, letra o fracción según el reto"><p id="avisoReto" role="status"></p><div class="acciones"><button type="submit">Responder</button><button type="button" id="cancelarReto" class="secundario">Volver al laberinto</button></div></form></dialog>
+<dialog id="dialogoPausa" aria-labelledby="tituloPausa"><h2 id="tituloPausa">Juego en pausa</h2><p>El morado también está detenido.</p><div class="acciones"><button id="continuar">Continuar</button><button id="reiniciarPausa" class="secundario">Reiniciar</button></div></dialog>
+<dialog id="dialogoFinal" aria-labelledby="tituloFinal"><h2 id="tituloFinal"></h2><p id="textoFinal"></p><div class="acciones"><button id="reintentar">Volver a jugar</button><button id="portadaFinal" class="secundario">Portada</button></div></dialog>
+<script>
+'use strict';
+
+// ===== SONIDOS DEL EQUIPO PACMINION (noviembre 2026) =====
+// MP3: melodía continua, captura por el morado y superación de nivel.
+// Los navegadores móviles pueden requerir el primer toque para iniciar música.
+const musicaPac = new Audio('sonidos/fondo_pacminion.mp3');
+musicaPac.loop = true;
+musicaPac.preload = 'auto';
+musicaPac.volume = 0.15; // Fondo moderado para que los efectos se distingan.
+const efectoCapturaPac = new Audio('sonidos/cuandoteatratapaelmorado_pacminion.mp3');
+const efectoNivelPac = new Audio('sonidos/pasardenivel_pacminion.mp3');
+const efectoErrorPac = new Audio('sonidos/incorrecto-mathpixels.mp3');
+efectoErrorPac.volume=.9;
+efectoCapturaPac.volume = 0.87;
+efectoNivelPac.volume = 0.87;
+let pacAudioHabilitado = true;
+let pacAudioDesbloqueado = false;
+let efectoEnCursoPac = null;
+const botonesSonidoPac = [...document.querySelectorAll('.boton-sonido-pac')];
+function actualizarBotonesAudioPac(){
+  botonesSonidoPac.forEach(b=>{
+    b.textContent=pacAudioHabilitado?'🔊 Silenciar':'🔇 Activar sonido';
+    b.setAttribute('aria-pressed', String(!pacAudioHabilitado));
+    b.setAttribute('aria-label', pacAudioHabilitado?'Silenciar música de Pacminion':'Activar música de Pacminion');
+  });
+}
+function detenerEfectoPac(){
+  [efectoCapturaPac, efectoNivelPac, efectoErrorPac].forEach(a=>{a.pause();a.currentTime=0;});
+  efectoEnCursoPac=null;
+  musicaPac.volume=0.15;
+}
+function sincronizarMusicaPac(){
+  if(!pacAudioHabilitado || !pacAudioDesbloqueado || document.hidden || estado==='pausa'){
+    musicaPac.pause();return;
+  }
+  // No se reinicia al pasar de portada a bienvenida o cambiar de nivel.
+  if(musicaPac.paused){
+    const intento=musicaPac.play();
+    if(intento?.catch)intento.catch(()=>{});
+  }
+}
+function sonidoEventoPac(tipo){
+  if(!pacAudioHabilitado || !pacAudioDesbloqueado || document.hidden)return;
+  detenerEfectoPac();
+  const clip=tipo==='nivel'?efectoNivelPac:(tipo==='incorrecto'?efectoErrorPac:efectoCapturaPac);
+  efectoEnCursoPac=clip;
+  musicaPac.volume=0.05;
+  const intento=clip.play();
+  if(intento?.catch)intento.catch(()=>{musicaPac.volume=0.15;});
+}
+[efectoCapturaPac,efectoNivelPac,efectoErrorPac].forEach(clip=>clip.addEventListener('ended',()=>{
+  if(efectoEnCursoPac===clip){efectoEnCursoPac=null;musicaPac.volume=0.15;}
+}));
+for(const b of botonesSonidoPac)b.addEventListener('click',()=>{
+  pacAudioDesbloqueado=true;
+  pacAudioHabilitado=!pacAudioHabilitado;
+  if(!pacAudioHabilitado){musicaPac.pause();detenerEfectoPac();}
+  actualizarBotonesAudioPac();
+  sincronizarMusicaPac();
+});
+function activarAudioPac(){pacAudioDesbloqueado=true;sincronizarMusicaPac()}
+document.addEventListener('pointerdown', activarAudioPac, {capture:true});
+document.addEventListener('keydown', activarAudioPac, {capture:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){musicaPac.pause();detenerEfectoPac();}
+  else sincronizarMusicaPac();
+});
+window.addEventListener('pagehide',()=>{musicaPac.pause();detenerEfectoPac()});
+actualizarBotonesAudioPac();
+// ===== FIN SONIDOS PACMINION =====
+
+/* =============================================================
+   ZONA DE EDICIÓN PARA EL EQUIPO
+   Todo va en una misma carpeta: este HTML y sus imágenes.
+   Usen los nombres exactos, incluyendo .png, .jpg o .jpeg.
+   Para una subcarpeta, escriban por ejemplo: imagenes/portada.webp
+   No se necesitan botones para cargar archivos durante el juego.
+   ============================================================= */
+// ===== EDITEN SOLO ESTA ZONA PARA IMÁGENES, FONDOS, DATOS E INSTRUCCIONES =====
+// Igual que Nezaldi FC: cambien solamente lo que está entre comillas.
+// Ejemplo: minionAmarillo: 'mi_minion.webp',
+// Guarden cada imagen en la misma carpeta que este HTML.
+const configuracion = {
+  titulo: 'Pacminion', // CAMBIA: nombre del videojuego.
+  bienvenida: '¡Bienvenidos a Pacminion!', // Saludo del equipo.
+  frasePortada: '¡Resuelve los retos y escapa del morado!', // Frase del juego.
+  instrucciones: [ // Instrucciones proporcionadas por el equipo.
+    'En este juego tienes un personaje llamado Pac-Man Minion, que te ayuda a avanzar por el mapa y completar los niveles.',
+    'Para avanzar, tienes que pasar por unas líneas verdes que contienen retos de matemáticas.',
+    'Tienes 30 segundos para responder cada pregunta; si respondes mal o se acaba el tiempo, pierdes una vida. Si respondes correctamente, ganas puntos que te ayudan a avanzar y desbloquear nuevos niveles.',
+    'Empiezas con 3 vidas y, si las pierdes todas, tienes que volver a intentarlo.'
+  ],
+  // ===== IMÁGENES OPCIONALES: DESCOMENTEN LAS QUE QUIERAN =====
+  // DESCOMENTAR = quitar solamente las dos barras // al inicio de la línea.
+  // Luego escriban el nombre EXACTO de su archivo entre comillas.
+  // Guarden sus imágenes en la misma carpeta que este HTML.
+  // Ejemplo: // imagenPortada: 'mi_portada.webp',
+  // queda:       imagenPortada: 'mi_portada.webp',
+  // NO quiten las comillas ni la coma del final.
+
+  // PORTADA DEL JUEGO: imagen grande de Canva en la primera pantalla.
+   imagenPortada: 'portada.webp',
+
+  // IMAGEN DE INSTRUCCIONES: aparece junto a su bienvenida y sus nombres.
+  //imagenInstrucciones: 'instrucciones.webp',
+
+  // FONDO de toda la pantalla de bienvenida e instrucciones (opcional).
+  fondoInstrucciones: 'fondoinstrucciones.webp',
+
+  // FONDO BASE del laberinto: decorativo, sin paredes dibujadas.
+   fondoJuego: 'fondo.webp',
+
+  // MINIONS: PNG sin fondo. Amarillo = jugador; morado = perseguidor.
+  minionAmarillo: 'amarillo.webp',
+  minionMorado: 'morado.webp',
+  // Tamaño de ambos: --tam-personaje al inicio del CSS.
+
+  // FONDOS POR NIVEL: pueden descomentar cualquiera, sin cambiar los números.
+  // Si no eligen fondo de un nivel, se usa fondoJuego o el color del CSS.
+  fondosNiveles: {
+    // 0: 'fondo_nivel1.webp', // Nivel 1.
+    // 1: 'fondo_nivel2.webp', // Nivel 2.
+    // 2: 'fondo_nivel3.webp', // Nivel 3.
+    // 3: 'fondo_nivel4.webp', // Nivel 4.
+    // 4: 'fondo_nivel5.webp', // Nivel 5.
+  },
+
+  // REGLAS YA PROGRAMADAS: NO MOVER PARA PERSONALIZAR IMÁGENES O COLORES.
+  segundosPorNivel: 225,
+  totalNiveles: 5,
+  // No borren las comillas al cambiar los textos:
+  creadores: 'Sebastián Zepeda, Mariel, Ana María y Andrés', // Integrantes del equipo.
+  escuela: 'Comunidad de Aprendizaje Nezaldi · 3.º de secundaria · Computación y Matemáticas', // Datos de la exposición.
+  descripcion: 'Un laberinto matemático en el que debes superar desafíos, evitar al minion morado y avanzar de nivel.', // Presentación del juego.
+  pasoAmarilloMs: 145, // Menor número = el amarillo se mueve más rápido.
+  pasoMoradoMs: 340,   // Menor número = el morado corre más. Debe ser mayor que 145 para empezar.
+  esperaInicialMoradoMs: 3000, // Ventaja al comenzar.
+  segundosPorReto: 30, // Los retos duran 30 segundos, tal como indican las instrucciones.
+  proteccionPortalMs: 2000
+};
+/* BANCO DE RETOS: agreguen más objetos con pregunta y respuesta.
+   Escriban la operación visible en pregunta y el resultado numérico en respuesta.
+   No usen eval(). Se aceptan decimales con punto o coma. */
+// Los cinco niveles siguen el Python del equipo.
+// Nivel 5: agreguen conjuntos_1.webp ... conjuntos_5.webp.
+// Sustituyan null por la respuesta real en cada reto del nivel 5.
+// El Python decía 4 en todos, sin adjuntar diagramas; no se pudo confirmar.
+// En «¿Qué números van en el conjunto A?» respuesta puede ser texto, por ejemplo
+// una lista de números; escriban la respuesta real cuando tengan su imagen.
+// RETOS YA REVISADOS: no cambien respuestas de niveles 1 a 4.
+// SOLO NIVEL 5: agreguen sus diagramas y respuestas donde dice null.
+const RETOS_POR_NIVEL = [
+  [
+    {
+      "pregunta": "¿Cuanto es 36÷4+5×3?",
+      "respuesta": 24.0,
+      "opciones": []
+    },
+    {
+      "pregunta": "¿Cuanto es 8 + 3 × (6 − 2)?",
+      "respuesta": 20,
+      "opciones": []
+    },
+    {
+      "pregunta": "cuanto es 18 ÷ 3 + 7 ",
+      "respuesta": 13.0,
+      "opciones": []
+    },
+    {
+      "pregunta": "¿Cuanto es 20−4×(6÷2)?",
+      "respuesta": 8.0,
+      "opciones": []
+    },
+    {
+      "pregunta": "¿Cuanto es 48 ÷ 6 × 2 − 5?",
+      "respuesta": 11.0,
+      "opciones": []
+    }
+  ],
+  [
+    {
+      "pregunta": "Un trapecio tiene bases de 12 cm y 8 cm, y altura de 5 cm. ¿Cuál es su área?",
+      "respuesta": "B",
+      "opciones": [
+        "A) 45 cm²",
+        "B) 50 cm²",
+        "C) 60 cm²"
+      ]
+    },
+    {
+      "pregunta": "Un círculo tiene radio de 5 cm. Usa π = 3.14. ¿Cuál es su área?",
+      "respuesta": "B",
+      "opciones": [
+        "A) 31.4 cm²",
+        "B) 78.5 cm²",
+        "C) 15.7 cm²"
+      ]
+    },
+    {
+      "pregunta": "Un triángulo tiene lados de 3, 4 y 5 cm ¿cual es su perimetro?",
+      "respuesta": "C",
+      "opciones": [
+        "A) 20",
+        "B) 15",
+        "C) 12"
+      ]
+    },
+    {
+      "pregunta": "Un terreno rectangular mide 15 metros de largo y 8 metros de ancho ¿Cuál es el perímetro del terreno?",
+      "respuesta": "B",
+      "opciones": [
+        "A) 23 m",
+        "B) 46 m",
+        "C) 120 m"
+      ]
+    },
+    {
+      "pregunta": "Un terreno rectangular mide 15 m de largo y 9 m de ancho. ¿Cuál es su perímetro?",
+      "respuesta": "B",
+      "opciones": [
+        "A) 135 m",
+        "B) 48 m",
+        "C) 24 m"
+      ]
+    }
+  ],
+  [
+    {
+      "pregunta": "El complemento de 35° es:",
+      "respuesta": "A",
+      "opciones": [
+        "A) 55°",
+        "B) 65°",
+        "C) 145°"
+      ]
+    },
+    {
+      "pregunta": "El complemento de 62° es:",
+      "respuesta": "A",
+      "opciones": [
+        "A) 28°",
+        "B) 118°",
+        "C) 32°"
+      ]
+    },
+    {
+      "pregunta": "Un triángulo tiene ángulos de 60 y 70 ¿Cuál es el ángulo restante?",
+      "respuesta": "B",
+      "opciones": [
+        "A) 40°",
+        "B) 50°",
+        "C) 75°"
+      ]
+    },
+    {
+      "pregunta": "Un triángulo tiene 3 ángulos iguales ¿Cuánto mide cada uno?",
+      "respuesta": "A",
+      "opciones": [
+        "A) 60°",
+        "B) 70°",
+        "C) 30°"
+      ]
+    },
+    {
+      "pregunta": "Un ángulo mide x y su complemento 30° ¿Cuánto mide el ángulo?",
+      "respuesta": "A",
+      "opciones": [
+        "A) 60°",
+        "B) 70°",
+        "C) 50°"
+      ]
+    }
+  ],
+  [
+    {
+      "pregunta": "Si lanzas un dado de 6 caras, ¿cuál es la probabilidad de obtener un 3?",
+      "respuesta": "1/6",
+      "opciones": []
+    },
+    {
+      "pregunta": "En una canasta hay 5 manzanas rojas y 1 verde. Si eliges una al azar, ¿cuál es la probabilidad de sacar una verde?",
+      "respuesta": "1/6",
+      "opciones": []
+    },
+    {
+      "pregunta": "Una bolsa tiene 4 bolas: una azul, una roja, una amarilla y una verde. ¿Cuál es la probabilidad de sacar una azul? ",
+      "respuesta": "1/4",
+      "opciones": []
+    },
+    {
+      "pregunta": "Si lanzas una moneda, ¿cuál es la probabilidad de que salga cara?",
+      "respuesta": "1/2",
+      "opciones": []
+    },
+    {
+      "pregunta": "En una bolsa hay 3 bolas rojas, 5 azules y 2 verdes. Si sacas una bola al azar, ¿cuál es la probabilidad de que sea roja?",
+      "respuesta": "3/10",
+      "opciones": []
+    }
+  ],
+  [
+    {
+      "pregunta": "Cuántos juegan solamente fútbol? ",
+      "respuesta": null,
+      "opciones": [],
+      "imagen": "conjuntos_1.webp",
+      "pendienteRevision": true
+    },
+    {
+      "pregunta": "¿Cuántos prefieren solamente azul? ",
+      "respuesta": null,
+      "opciones": [],
+      "imagen": "conjuntos_2.webp",
+      "pendienteRevision": true
+    },
+    {
+      "pregunta": "¿Qué números van en el conjunto A? ",
+      "respuesta": null,
+      "opciones": [],
+      "imagen": "conjuntos_3.webp",
+      "pendienteRevision": true
+    },
+    {
+      "pregunta": "Qué número va en la intersección? ",
+      "respuesta": null,
+      "opciones": [],
+      "imagen": "conjuntos_4.webp",
+      "pendienteRevision": true
+    },
+    {
+      "pregunta": "Cuántos juegan solamente basquet? ",
+      "respuesta": null,
+      "opciones": [],
+      "imagen": "conjuntos_5.webp",
+      "pendienteRevision": true
+    }
+  ]
+];
+const RETOS = RETOS_POR_NIVEL.flat();
+/* MAPA: cada carácter es una casilla. Todas las filas tienen 21 caracteres.
+   # pared negra | . pasillo | J jugador | M morado | B banana
+   G barrera verde | A y Z portales enlazados | S salida.
+   Conserven un J, un M, un A, un Z y una S. No encierren bananas.
+   Una imagen de fondo NO crea paredes; las colisiones siguen este mapa. */
+// NO MOVER ESTE MAPA: contiene paredes, portales y puntos de inicio.
+const MAPA = [
+ '#####################',
+ '#A..J.#......B......#',
+ '#.###.#.#####.###.#.#',
+ '#...#...#...#...#.#.#',
+ '###.#.###.#.###.#.#.#',
+ '#B..#.....#.....#...#',
+ '#.#####G#####.#####.#',
+ '#...G.......#...G...#',
+ '#.###.#####.#.###.#.#',
+ '#...#.....#...#...#B#',
+ '#.#.#####.###G###.#.#',
+ '#.#...B.#.....#...#.#',
+ '#.###.#.#####.#.###.#',
+ '#.....#.....B..M..SZ#',
+ '#####################'
+];
+/* ===========================================================
+   NO MOVER DESDE AQUÍ HASTA EL FINAL DEL ARCHIVO.
+   Este motor controla movimiento, persecución, colisiones,
+   portales, vidas, puntos, tiempo y botones.
+   Para personalizar, usen CSS y configuracion, más arriba.
+   =========================================================== */
+const $ = id => document.getElementById(id);
+const DIRECCIONES = {arriba:[0,-1],abajo:[0,1],izquierda:[-1,0],derecha:[1,0]};
+const TECLAS = {ArrowUp:'arriba',ArrowDown:'abajo',ArrowLeft:'izquierda',ArrowRight:'derecha',w:'arriba',s:'abajo',a:'izquierda',d:'derecha'};
+const columnas=MAPA[0].length,filas=MAPA.length;
+let nivel=1,vidas=3,puntos=0,completados=new Set();
+let estado='menu',jugador,morado,inicioJugador,inicioMorado,portales={},puertas=new Set(),frutas=new Set(),totalFrutas=0,recogidas=0,aciertos=0;
+let tiempoActivo=0,ultimoFrame=0,acumuladorJugador=0,acumuladorMorado=0,direccion=null,protegidoHasta=0,bloqueoPortalHasta=0,reto=null,bolsaRetos=[];
+let actorAmarillo,actorMorado;
+const clave=(x,y)=>`${x},${y}`;
+const igual=(a,b)=>a.x===b.x&&a.y===b.y;
+function casilla(x,y){return MAPA[y]?.[x]??'#'}
+function imagenOpcional(ruta,alCargar){if(!ruta)return;const img=new Image();img.onload=()=>alCargar(ruta);img.src=ruta}
+function fondo(id,ruta){imagenOpcional(ruta,p=>{$(id).style.backgroundImage=`url(${JSON.stringify(p)})`})}
+imagenOpcional(configuracion.imagenPortada,p=>{$('imagenPortada').src=p;$('imagenPortada').hidden=false;$('pantallaPortada').classList.add('con-imagen')});
+fondo('pantallaInstrucciones',configuracion.fondoInstrucciones);fondo('tablero',configuracion.fondoJuego);
+// Aplicar automáticamente los textos que el equipo escribió arriba.
+document.title='Math Arcade | Math Pixels';
+document.querySelectorAll('.nombreJuego').forEach(e=>e.textContent=configuracion.titulo);
+$('frasePortada').textContent=configuracion.frasePortada;
+$('bienvenida').textContent=configuracion.bienvenida;
+imagenOpcional(configuracion.imagenInstrucciones,p=>{$('imagenInstrucciones').src=p;$('imagenInstrucciones').hidden=false});
+for(const texto of configuracion.instrucciones){const li=document.createElement('li');li.textContent=texto;$('listaInstrucciones').append(li)}
+$('creadores').textContent=configuracion.creadores;$('creditosEquipoPacminion').hidden=!configuracion.creadores.trim();$('escuela').textContent=configuracion.escuela;$('descripcion').textContent=configuracion.descripcion;
+function mostrar(id){document.querySelectorAll('.pantalla').forEach(el=>el.hidden=el.id!==id);direccion=null;requestAnimationFrame(ajustarTablero)}
+function ajustarTablero(){const zona=document.querySelector('.zona');if(!zona.clientHeight)return;$('tablero').style.width=Math.min(zona.clientWidth,1100,zona.clientHeight*columnas/filas)+'px'}
+window.addEventListener('resize',ajustarTablero);
+function posicionar(el,p){el.style.left=p.x/columnas*100+'%';el.style.top=p.y/filas*100+'%'}
+function elemento(tipo,x,y,texto=''){const e=document.createElement('div');e.className=tipo;e.style.width=100/columnas+'%';e.style.height=100/filas+'%';e.textContent=texto;posicionar(e,{x,y});$('tablero').append(e);return e}
+function crearActor(tipo,p,ruta,alt){const e=elemento('actor '+tipo,p.x,p.y);const respaldo=document.createElement('span');respaldo.className='sustituto';respaldo.textContent='◉';e.append(respaldo);const img=document.createElement('img');img.alt=alt;img.hidden=true;img.onload=()=>{img.hidden=false;respaldo.hidden=true};img.onerror=()=>{img.hidden=true;respaldo.hidden=false};if(ruta)img.src=ruta;e.append(img);return e}
+function validarMapa(){if(MAPA.some(f=>f.length!==columnas))throw Error('Todas las filas del mapa deben tener el mismo largo.');for(const c of ['J','M','A','Z','S'])if(MAPA.join('').split(c).length!==2)throw Error('El mapa necesita exactamente un '+c)}
+function comenzar(nuevoNivel=1){
+ nivel=Number.isInteger(nuevoNivel)?nuevoNivel:1;
+ if(nivel===1){vidas=3;puntos=0}completados=new Set();
+ cerrarDialogos();try{validarMapa()}catch(e){alert(e.message);return}
+ mostrar('pantallaJuego');fondo('tablero',configuracion.fondosNiveles[nivel-1]||configuracion.fondoJuego);$('tablero').replaceChildren();puertas=new Set();frutas=new Set();portales={};bolsaRetos=[];recogidas=aciertos=tiempoActivo=0;acumuladorJugador=acumuladorMorado=0;protegidoHasta=0;bloqueoPortalHasta=0;reto=null;
+ MAPA.forEach((fila,y)=>[...fila].forEach((c,x)=>{const k=clave(x,y);if(c==='#')elemento('casilla pared',x,y);if(c==='G'){const e=elemento('casilla barrera',x,y);e.dataset.puerta=k}if(c==='A'||c==='Z'){portales[c]={x,y};elemento('casilla portal',x,y)}if(c==='B'){frutas.add(k);const e=elemento('casilla banana',x,y,'🍌');e.dataset.fruta=k}if(c==='S')elemento('casilla meta',x,y);if(c==='J')inicioJugador={x,y};if(c==='M')inicioMorado={x,y}}));
+ jugador={...inicioJugador};morado={...inicioMorado};totalFrutas=frutas.size;actorAmarillo=crearActor('jugador',jugador,configuracion.minionAmarillo,'Minion amarillo');actorMorado=crearActor('enemigo',morado,configuracion.minionMorado,'Minion morado');estado='jugando';actualizarMarcador();mensaje('Recolecta las bananas y llega a ★. ¡Escapa del morado!');ajustarTablero();sincronizarMusicaPac();
+}
+function cerrarDialogos(){for(const d of document.querySelectorAll('dialog'))if(d.open)d.close()}
+function portada(){cerrarDialogos();estado='menu';reto=null;mostrar('pantallaPortada');sincronizarMusicaPac()}
+function mensaje(t){$('mensaje').textContent=t}
+function formato(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function actualizarMarcador(){$('vidas').textContent=vidas;$('puntos').textContent=puntos;$('nivel').textContent=nivel+'/'+configuracion.totalNiveles;$('tiempo').textContent=formato(Math.max(0,configuracion.segundosPorNivel*1000-tiempoActivo));$('bananas').textContent=`${recogidas}/${totalFrutas}`;$('aciertos').textContent=aciertos}
+function colision(){if(igual(jugador,morado)&&tiempoActivo>=protegidoHasta){terminar(false);return true}return false}
+function moverJugador(){
+ if(!direccion)return;const [dx,dy]=DIRECCIONES[direccion],destino={x:jugador.x+dx,y:jugador.y+dy},c=casilla(destino.x,destino.y),k=clave(destino.x,destino.y);
+ if(c==='#')return;
+ // Las barreras y los portales se activan al intentar entrar en su casilla.
+ if(c==='G'&&(!puertas.has(k)||completados.size<5)){abrirReto('puerta',destino);return}
+ if((c==='A'||c==='Z')&&tiempoActivo>=bloqueoPortalHasta){abrirReto('portal',destino);return}
+ jugador=destino;posicionar(actorAmarillo,jugador);if(colision())return;visitar();
+}
+function visitar(){const k=clave(jugador.x,jugador.y);if(frutas.delete(k)){recogidas++;document.querySelector(`[data-fruta="${k}"]`)?.remove();actualizarMarcador()}if(casilla(jugador.x,jugador.y)==='S'){if(recogidas===totalFrutas&&completados.size===5)terminar(true);else mensaje(`Faltan ${totalFrutas-recogidas} bananas y ${5-completados.size} retos. Visita las barras para resolverlos.`)}}
+// Búsqueda de ruta: el morado respeta las paredes y las barreras cerradas.
+// El morado camina sobre los portales, pero no puede teletransportarse.
+function siguientePaso(origen,destino){const cola=[origen],visto=new Set([clave(origen.x,origen.y)]),padres=new Map();let encontrado=false;
+ for(let i=0;i<cola.length;i++){const p=cola[i];if(igual(p,destino)){encontrado=true;break}for(const [dx,dy] of Object.values(DIRECCIONES)){const n={x:p.x+dx,y:p.y+dy},k=clave(n.x,n.y),c=casilla(n.x,n.y);if(c==='#'||(c==='G'&&!puertas.has(k))||visto.has(k))continue;visto.add(k);padres.set(k,p);cola.push(n)}}
+ if(!encontrado||igual(origen,destino))return origen;let n=destino;while(padres.has(clave(n.x,n.y))&&!igual(padres.get(clave(n.x,n.y)),origen))n=padres.get(clave(n.x,n.y));return n;
+}
+function moverMorado(){if(tiempoActivo<configuracion.esperaInicialMoradoMs||tiempoActivo<protegidoHasta)return;morado=siguientePaso(morado,jugador);posicionar(actorMorado,morado);colision()}
+function elegirReto(){const banco=RETOS_POR_NIVEL[nivel-1];const pendientes=banco.filter((_,i)=>!completados.has(i));return pendientes[Math.floor(Math.random()*pendientes.length)]||banco[0]}
+function abrirReto(tipo,destino){estado='reto';direccion=null;reto={tipo,destino,pregunta:elegirReto(),restante:configuracion.segundosPorReto*1000};$('tituloReto').textContent=tipo==='portal'?'Activa el portal azul':'Abre la barrera verde';$('operacion').textContent=reto.pregunta.pregunta;$('opcionesReto').textContent=reto.pregunta.opciones.join('\n');$('imagenReto').hidden=true;reto.imagenLista=!reto.pregunta.imagen;if(reto.pregunta.imagen){const actual=reto;$('imagenReto').onload=()=>{if(reto===actual){reto.imagenLista=true;$('imagenReto').hidden=false}};$('imagenReto').onerror=()=>{if(reto===actual)$('avisoReto').textContent='La imagen de este reto no está disponible.'};$('imagenReto').src=reto.pregunta.imagen;}$('respuesta').value='';$('avisoReto').textContent='El morado está detenido. ¡Concéntrate!';$('relojReto').textContent=Math.ceil(reto.restante/1000);$('dialogoReto').showModal();$('respuesta').focus()}
+function perderVida(texto){sonidoEventoPac('incorrecto');vidas--;abandonarReto(texto+' Perdiste una vida.');actualizarMarcador();if(vidas<=0)terminar(false,'¡Te quedaste sin vidas!')}
+function abandonarReto(texto){$('dialogoReto').close();reto=null;estado='jugando';direccion=null;acumuladorJugador=acumuladorMorado=0;mensaje(texto)}
+$('formularioReto').addEventListener('submit',e=>{e.preventDefault();if(estado!=='reto'||!reto)return;if(reto.pregunta.respuesta===null){$('avisoReto').textContent='Este reto todavía no está disponible. Vuelve al laberinto.';return}if(!reto.imagenLista){$('avisoReto').textContent='La imagen de este reto no está disponible. Vuelve al laberinto.';return}
+ const raw=$('respuesta').value.trim();if(!raw)return;
+ const normalizar=v=>String(v).trim().toUpperCase().replace(/\s+/g,'');
+ const esperada=reto.pregunta.respuesta;
+ const correcto=typeof esperada==='number'?Math.abs(Number(raw.replace(',','.'))-esperada)<1e-8:normalizar(raw)===normalizar(esperada);
+ if(!correcto){perderVida('Respuesta incorrecta.');return}
+ const indice=RETOS_POR_NIVEL[nivel-1].indexOf(reto.pregunta);if(!completados.has(indice)){completados.add(indice);puntos+=3} 
+ const {tipo,destino}=reto;aciertos=completados.size;
+ if(tipo==='puerta'){const k=clave(destino.x,destino.y);puertas.add(k);document.querySelector(`[data-puerta="${k}"]`)?.classList.add('abierta');jugador={...destino};abandonarReto('¡Correcto! Barrera abierta.')}else{const c=casilla(destino.x,destino.y);jugador={...portales[c==='A'?'Z':'A']};bloqueoPortalHasta=tiempoActivo+1500;protegidoHasta=tiempoActivo+configuracion.proteccionPortalMs;abandonarReto('¡Correcto! Te teletransportaste. ¡Sigue moviéndote!')}
+ posicionar(actorAmarillo,jugador);actualizarMarcador();if(!colision())visitar();
+});
+function terminar(gano,motivo=''){estado='final';if(gano)sonidoEventoPac('nivel');else if(!motivo)sonidoEventoPac('captura');direccion=null;$('tituloFinal').textContent=gano?(nivel<configuracion.totalNiveles?'¡Nivel completado!':'¡Escapaste del laberinto!'):(motivo||'¡El morado te atrapó!');$('reintentar').textContent=gano&&nivel<configuracion.totalNiveles?'Siguiente nivel':'Volver a jugar';$('reintentar').onclick=()=>comenzar(gano&&nivel<configuracion.totalNiveles?nivel+1:1);const nombre=$('nombreJugador').value.trim();$('textoFinal').textContent=(nombre?nombre+', ':'')+(gano?'¡misión cumplida! ':'¡vuelve a intentarlo! ')+`Tiempo: ${formato(tiempoActivo)} · Bananas: ${recogidas}/${totalFrutas} · Retos resueltos: ${aciertos}/5 · Puntos: ${puntos} · Vidas: ${vidas}.`;$('dialogoFinal').showModal()}
+function pausa(){if(estado!=='jugando')return;estado='pausa';direccion=null;sincronizarMusicaPac();$('dialogoPausa').showModal()}
+function continuar(){$('dialogoPausa').close();estado='jugando';direccion=null;acumuladorJugador=acumuladorMorado=0;sincronizarMusicaPac()}
+function animar(t){const dt=ultimoFrame?Math.min(t-ultimoFrame,100):0;ultimoFrame=t;
+ if(estado==='jugando'){tiempoActivo+=dt;if(tiempoActivo>=configuracion.segundosPorNivel*1000){terminar(false,'¡Se acabó el tiempo!');requestAnimationFrame(animar);return}acumuladorJugador+=dt;acumuladorMorado+=dt;if(acumuladorJugador>=configuracion.pasoAmarilloMs){acumuladorJugador=0;moverJugador()}if(estado==='jugando'&&acumuladorMorado>=Math.max(170,configuracion.pasoMoradoMs-(nivel-1)*65)){acumuladorMorado=0;moverMorado()}if(actorAmarillo)actorAmarillo.classList.toggle('protegido',tiempoActivo<protegidoHasta);actualizarMarcador()}
+ else if(estado==='reto'&&reto&&reto.imagenLista&&reto.pregunta.respuesta!==null){reto.restante-=dt;$('relojReto').textContent=Math.max(0,Math.ceil(reto.restante/1000));if(reto.restante<=0)perderVida('Se acabó el tiempo del reto.')}
+ requestAnimationFrame(animar)
+}
+window.addEventListener('keydown',e=>{const d=TECLAS[e.key]||TECLAS[e.key.toLowerCase()];if(estado==='jugando'&&d){e.preventDefault();direccion=d}if(e.code==='Space'&&estado==='jugando'){e.preventDefault();pausa()}});
+window.addEventListener('keyup',e=>{const d=TECLAS[e.key]||TECLAS[e.key.toLowerCase()];if(d===direccion)direccion=null});
+window.addEventListener('blur',()=>{direccion=null;pausa()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){direccion=null;pausa()}});
+for(const b of document.querySelectorAll('[data-dir]')){b.addEventListener('pointerdown',e=>{e.preventDefault();if(estado==='jugando'){direccion=b.dataset.dir;b.setPointerCapture(e.pointerId)}});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>{direccion=null})}
+$('irInstrucciones').onclick=()=>mostrar('pantallaInstrucciones');
+$('jugarPortada').onclick=comenzar;
+for(const b of document.querySelectorAll('.volverPortada'))b.onclick=portada;
+$('jugarInstrucciones').onclick=$('reintentar').onclick=$('reiniciarPausa').onclick=comenzar;
+$('salir').onclick=$('portadaFinal').onclick=portada;$('pausar').onclick=pausa;$('continuar').onclick=continuar;$('cancelarReto').onclick=()=>abandonarReto('Puedes buscar otro camino o intentar el reto de nuevo.');
+$('dialogoReto').addEventListener('cancel',e=>{e.preventDefault();abandonarReto('Reto cancelado. Puedes volver a intentarlo.')});$('dialogoPausa').addEventListener('cancel',e=>{e.preventDefault();continuar()});$('dialogoFinal').addEventListener('cancel',e=>{e.preventDefault();portada()});
+requestAnimationFrame(animar);
+</script>
+<script src="../../assets/arcade-nav.js"></script>
+</body>
+</html>

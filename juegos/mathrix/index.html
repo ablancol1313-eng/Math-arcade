@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- EDITAR: nombre de la pestaña. -->
+    <title>Math Arcade | Math Pixels</title>
+
+    <style>
+        /*
+        =====================================================
+        INSTRUCCIONES PARA EL EQUIPO
+        =====================================================
+
+        GUARDAR:
+        1. Copien TODO este código en Bloc de notas.
+        2. Seleccionen Archivo > Guardar como.
+        3. Nombre: MATHRIX.html
+
+        JUGAR:
+        Abran MATHRIX.html con doble clic.
+
+        EDITAR:
+        Clic derecho > Abrir con > Bloc de notas.
+        Guarden con Ctrl + S y actualicen el navegador.
+
+        ARCHIVOS NECESARIOS:
+        MATHRIX.html
+        PORTADA-MATHRIX.webp
+        HEXAGONO.webp, RECTANGULO.webp, TRIANGULO.webp, CIRCULO.webp,
+        ROMBO.webp, PENTAGONO.webp, OVALO.webp, TRAPECIO.webp,
+        CUADRADO.webp y CORAZON.webp.
+
+        Hay 10 ejercicios por nivel: 50 en total y hasta 500 puntos.
+        Los ejercicios avanzan en orden; solo las respuestas cambian de posición.
+
+        Las imágenes pueden crearlas en Canva y descargarlas
+        como PNG. Los nombres deben coincidir con las rutas.
+        */
+
+        /* ==================================================
+           1. EDITAR: COLORES Y ESQUINAS
+           ================================================== */
+
+        :root {
+            --fondo: #06194f;
+            --panel: #102c6c;
+            --texto: #ffffff;
+            --borde: #48dcff;
+            --tarjeta: #194693;
+            --boton: #b000b5;
+            --correcto: #246c38;
+            --incorrecto: #a92439;
+            --fondo-reto: #f2fbff;
+            --texto-reto: #10274d;
+            --esquinas: 20px;
+
+            /* TAMAÑO DE LAS FIGURAS: cambien estos dos números.
+               Más píxeles = figura más grande. Menos píxeles = más pequeña.
+               Ejemplo: prueben 380px de alto y 550px de ancho máximo.
+               El tamaño final también depende del espacio en la pantalla.
+               Si su PNG tiene mucho espacio blanco, recórtenlo desde Canva. */
+            --alto-figura: 340px;
+            --ancho-figura: 500px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--fondo);
+            color: var(--texto);
+            font-family: Arial, sans-serif;
+        }
+
+        button {
+            font: inherit;
+            cursor: pointer;
+        }
+
+        button:focus-visible {
+            outline: 4px solid #ffe94a;
+            outline-offset: 4px;
+        }
+
+        .boton {
+            padding: 14px 26px;
+            border: none;
+            border-radius: 14px;
+            background: var(--boton);
+            color: white;
+            font-weight: bold;
+        }
+
+        .boton:hover {
+            filter: brightness(1.15);
+        }
+
+        /* ==================================================
+           2. PORTADA AJUSTADA A LA PANTALLA
+           ================================================== */
+
+        /* PORTADA: solo imagen y botón. No hay textos encima del diseño. */
+        #portada {
+            width: 100%;
+            height: 100vh;
+            height: 100svh;
+            margin: 0;
+            padding: 12px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            background: #032365;
+        }
+        .portada-arte {
+            display: block;
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            object-fit: contain;
+        }
+        #comenzar { flex-shrink: 0; padding: 14px 40px; font-size: 22px; }
+        .bienvenida { font-size: 19px; line-height: 1.6; }
+        .instrucciones { text-align: left; max-width: 700px; margin: 24px auto; }
+        .instrucciones li { margin: 12px 0; line-height: 1.6; }
+        .acciones { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; }
+        #titulo-bienvenida { font-size: clamp(28px, 5vw, 44px); }
+
+        /* ==================================================
+           3. PANTALLA DEL JUEGO
+           ================================================== */
+
+        .panel {
+            width: min(94%, 1000px);
+            margin: 24px auto;
+            padding: 26px;
+            border: 2px solid var(--borde);
+            border-radius: var(--esquinas);
+            background: var(--panel);
+            text-align: center;
+
+            /*
+            OPCIONAL: IMAGEN DE FONDO DENTRO DEL JUEGO.
+            Quiten los signos de comentario para activarla.
+*/
+           /* background-image: url("PORTADAMATHTRIX.webp");
+            background-size: cover;
+            background-position: center;
+           */
+        }
+
+        .barra {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .barra h2 {
+            margin: 0;
+        }
+
+        .marcadores {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 22px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #tiempo {
+            padding: 8px 14px;
+            border: 2px solid var(--borde);
+            border-radius: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #tiempo.urgente {
+            background: var(--incorrecto);
+        }
+
+        /* ==================================================
+           4. TARJETA SUPERIOR DEL RETO
+           ================================================== */
+
+        .tarjeta-operacion {
+            width: min(100%, 600px);
+            margin: 20px 0;
+            padding: 22px;
+            background: var(--fondo-reto);
+            color: var(--texto-reto);
+            border: 3px solid var(--borde);
+            border-radius: var(--esquinas);
+            text-align: left;
+            box-shadow: 0 6px 15px #00000025;
+        }
+
+        .etiqueta-reto {
+            margin: 0 0 10px;
+            color: #36599b;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #pregunta {
+            margin: 0;
+            font-size: clamp(24px, 4vw, 32px);
+            line-height: 1.4;
+        }
+
+        /* Imagen de la figura dentro de la tarjeta superior. */
+        #zona-imagen {
+            margin-top: 18px;
+            padding: 15px;
+            border-radius: 15px;
+            background: white;
+        }
+
+        /* EDITAR: tamaño de las imágenes de figuras. */
+        #figura {
+            display: block;
+            width: min(100%, 250px);
+            height: 180px;
+            margin: auto;
+            object-fit: contain;
+        }
+
+        #error-imagen {
+            color: #852136;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        /* ==================================================
+           5. TARJETAS DE RESPUESTA
+           ================================================== */
+
+        #opciones {
+            display: grid;
+
+            /* EDITAR: dos tarjetas por fila. */
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            /* EDITAR: separación entre tarjetas. */
+            gap: 16px;
+        }
+
+        .tarjeta {
+            min-height: 105px;
+            padding: 20px;
+            border: 3px solid var(--borde);
+            border-radius: var(--esquinas);
+            background: var(--tarjeta);
+            color: var(--texto);
+            font-size: clamp(20px, 3vw, 28px);
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .tarjeta:not(:disabled):hover {
+            background: #295bb5;
+        }
+
+        .tarjeta.correcta {
+            background: var(--correcto);
+            border-color: #a3ffb0;
+        }
+
+        .tarjeta.incorrecta {
+            background: var(--incorrecto);
+            border-color: #ffc0cb;
+        }
+
+        .tarjeta:disabled {
+            cursor: default;
+        }
+
+        #mensaje {
+            min-height: 60px;
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        #resultado {
+            font-size: 24px;
+            line-height: 1.6;
+        }
+
+        /* ==================================================
+           6. CONFETI
+           ================================================== */
+
+        .capa-confeti {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .papelito {
+            position: absolute;
+            top: -20px;
+            width: 10px;
+            height: 16px;
+        }
+
+        @media (max-width: 550px) {
+            .panel {
+                padding: 18px;
+            }
+
+            .tarjeta {
+                min-height: 90px;
+                padding: 12px;
+            }
+
+            .tarjeta-operacion {
+                padding: 18px;
+            }
+        }
+        /* Vista compacta: figura grande a la izquierda y respuestas a la derecha. */
+        #juego {
+            width: min(96%, 1120px);
+            margin: 12px auto;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(240px, 1fr);
+            gap: 12px 20px;
+            align-items: start;
+        }
+        #juego .barra { grid-column: 1 / -1; }
+        #juego .barra h2 { font-size: clamp(22px, 2.4vw, 30px); }
+        #juego .barra .boton { padding: 10px 18px; }
+        #juego .marcadores {
+            grid-column: 1 / -1;
+            margin: 0;
+            font-size: 17px;
+            gap: 10px;
+        }
+        #juego #tiempo { padding: 6px 10px; }
+        #juego .tarjeta-operacion {
+            grid-column: 1;
+            grid-row: 3 / 7;
+            width: 100%;
+            margin: 0;
+            padding: 16px;
+        }
+        #juego .etiqueta-reto { margin: 0 0 6px; font-size: 13px; }
+        #juego #pregunta { font-size: clamp(22px, 2.5vw, 29px); line-height: 1.25; }
+        #juego #zona-imagen { margin-top: 12px; padding: 6px; }
+        #juego #figura {
+            width: 100%;
+            /* Los tamaños se editan arriba, en --ancho-figura y --alto-figura. */
+            max-width: var(--ancho-figura);
+            /* 45vh limita la altura al 45% de la pantalla para dejar ver las respuestas. */
+            height: min(var(--alto-figura), 45vh);
+            object-fit: contain;
+        }
+        #juego > p:not(#mensaje) {
+            grid-column: 2;
+            grid-row: 3;
+            margin: 0;
+            font-size: 17px;
+        }
+        #juego #opciones { grid-column: 2; grid-row: 4; gap: 10px; }
+        #juego .tarjeta {
+            min-height: 72px;
+            padding: 10px;
+            font-size: clamp(18px, 2vw, 24px);
+            border-width: 2px;
+            border-radius: 14px;
+        }
+        #juego #mensaje {
+            grid-column: 2;
+            grid-row: 5;
+            min-height: 0;
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.4;
+        }
+        #juego #siguiente {
+            grid-column: 2;
+            grid-row: 6;
+            justify-self: center;
+            padding: 12px 20px;
+        }
+        /* En teléfonos se apila el contenido y se conservan respuestas compactas. */
+        @media (max-width: 720px) {
+            #juego { display: flex; flex-direction: column; padding: 14px; gap: 12px; }
+            #juego > * { width: 100%; }
+            /* EDITAR: límite del tamaño de la figura cuando se juega en teléfono. */
+            #juego #figura { height: min(var(--alto-figura), 28vh); }
+            #juego #pregunta { font-size: 22px; }
+            #juego .tarjeta { min-height: 58px; font-size: 18px; }
+            #juego #siguiente { width: auto; align-self: center; }
+        }
+
+
+        /* Portada de borde a borde, con el botón sobre el espacio inferior. */
+        #portada {
+            position: relative;
+            width: 100%;
+            padding: 0;
+            overflow: hidden;
+        }
+        #portada .portada-arte {
+            position: absolute;
+            inset: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            object-fit: cover;
+            object-position: center;
+        }
+        #portada #comenzar {
+            position: absolute;
+            bottom: max(24px, env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            box-shadow: 0 4px 18px #00103688;
+        }
+
+
+        /* ==================================================
+           FONDO OPCIONAL DEL SEGUNDO ESCENARIO: BIENVENIDA
+           ==================================================
+           1. Guarden su imagen junto a MATHRIX.html.
+           2. Llámenla FONDO-BIENVENIDA.webp o cambien la ruta.
+           3. Para activarla, borren SOLO la apertura y el cierre del comentario
+              que rodean la instrucción background-image dentro de la regla.
+           La capa azul transparente permite leer las instrucciones.
+        */
+        #bienvenida {
+            /* background-image:
+                linear-gradient(#06194fcc, #06194fcc),
+                url("FONDO-BIENVENIDA.webp"); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+
+        /* ==================================================
+           FONDOS POR NIVEL: OPCIONES PARA EL EQUIPO
+           ==================================================
+           Cada regla cambia el fondo del panel del nivel indicado.
+           background-color: cambien el código para elegir otro color.
+           Para poner una foto o diseño de Canva:
+           1. Guarden la imagen junto a MATHRIX.html.
+           2. Cambien el nombre dentro de url si su archivo se llama distinto.
+           3. Quiten la apertura y el cierre del comentario que rodea
+              background-image en ESE nivel.
+           El degradado azul oscuro hace que las letras sigan siendo legibles.
+           Cambien 0.78 por 0.5 para ver más la imagen, o 0.9 para oscurecerla.
+           cover llena el panel y puede recortar bordes; contain muestra la foto completa.
+        */
+
+        /* NIVEL 1: cambien color o activen la imagen de este nivel. */
+        #juego[data-nivel="1"] {
+            background-color: #102c6c;
+            /* background-image:
+                linear-gradient(rgba(6, 25, 79, 0.78), rgba(6, 25, 79, 0.78)),
+                url("FONDO-NIVEL-1.webp"); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* NIVEL 2: cambien color o activen la imagen de este nivel. */
+        #juego[data-nivel="2"] {
+            background-color: #102c6c;
+            /* background-image:
+                linear-gradient(rgba(6, 25, 79, 0.78), rgba(6, 25, 79, 0.78)),
+                url("FONDO-NIVEL-2.webp"); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* NIVEL 3: cambien color o activen la imagen de este nivel. */
+        #juego[data-nivel="3"] {
+            background-color: #102c6c;
+            /* background-image:
+                linear-gradient(rgba(6, 25, 79, 0.78), rgba(6, 25, 79, 0.78)),
+                url("FONDO-NIVEL-3.webp"); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* NIVEL 4: cambien color o activen la imagen de este nivel. */
+        #juego[data-nivel="4"] {
+            background-color: #102c6c;
+            /* background-image:
+                linear-gradient(rgba(6, 25, 79, 0.78), rgba(6, 25, 79, 0.78)),
+                url("FONDO-NIVEL-4.webp"); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* NIVEL 5: cambien color o activen la imagen de este nivel. */
+        #juego[data-nivel="5"] {
+            background-color: #102c6c;
+            /* background-image:
+                linear-gradient(rgba(6, 25, 79, 0.78), rgba(6, 25, 79, 0.78)),
+                url("FONDO-NIVEL-5.webp"); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+
+        /* ==================================================
+           TAMAÑO Y POSICIÓN DE LOS RETOS MATEMÁTICOS
+           ================================================== */
+        :root {
+            /* EDITAR: tamaño de la operación. Suban 60px para hacerla mayor.
+               clamp usa un mínimo, un tamaño adaptable y un máximo. */
+            --tamano-reto: clamp(34px, 4.4vw, 60px);
+
+            /* EDITAR: altura mínima de la tarjeta en los niveles 2 a 5. */
+            --alto-minimo-reto: 260px;
+
+            /* EDITAR: center centra el texto; left lo alinea a la izquierda. */
+            --alineacion-reto: center;
+        }
+
+        /* Centra el contenido y ocupa también el espacio sobrante de la izquierda. */
+        #juego .tarjeta-operacion {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-self: stretch;
+            text-align: var(--alineacion-reto);
+        }
+
+        /* Solo los retos matemáticos: el nivel 1 conserva espacio para la figura. */
+        #juego:not([data-nivel="1"]) .tarjeta-operacion {
+            min-height: var(--alto-minimo-reto);
+            padding: 24px;
+        }
+        #juego:not([data-nivel="1"]) #pregunta {
+            font-size: var(--tamano-reto);
+            line-height: 1.2;
+            width: 100%;
+            overflow-wrap: anywhere;
+        }
+        #juego .etiqueta-reto {
+            text-align: var(--alineacion-reto);
+            margin-bottom: 14px;
+        }
+
+        /* En pantallas pequeñas, el reto queda arriba de las respuestas. */
+        @media (max-width: 720px) {
+            #juego:not([data-nivel="1"]) .tarjeta-operacion {
+                min-height: 160px;
+                padding: 18px;
+            }
+            #juego:not([data-nivel="1"]) #pregunta {
+                font-size: clamp(30px, 6vw, 42px);
+            }
+        }
+
+    
+/* Compatibilidad táctil y tamaño legible en celular */
+html{-webkit-text-size-adjust:100%}
+button,input,select{touch-action:manipulation}
+button{min-height:36px}
+@media(max-width:650px){button{max-width:100%}input{max-width:100%;font-size:16px}img{max-width:100%}}
+
+/* AJUSTES PARA CELULARES, TABLETAS Y PANTALLAS TÁCTILES — OCTUBRE 2026 */
+
+html,body{max-width:100%;overflow-x:clip}
+button,.tarjeta{touch-action:manipulation;min-height:44px}
+@media(max-width:720px){
+ #portada{min-height:100dvh;height:auto;padding:10px 10px 20px}
+ .portada-arte{max-width:100%;object-fit:contain}
+ #bienvenida{width:calc(100% - 18px);margin:8px auto;padding:15px}
+ #juego{width:calc(100% - 12px);margin:6px auto;padding:10px;gap:7px}
+ #juego .barra{gap:8px}
+ #juego .barra h2{font-size:20px}
+ #juego .marcadores{gap:5px;font-size:13px}
+ #juego .tarjeta-operacion{padding:12px;min-height:unset}
+ #juego:not([data-nivel="1"]) .tarjeta-operacion{min-height:115px;padding:12px}
+ #juego:not([data-nivel="1"]) #pregunta{font-size:clamp(21px,6vw,29px)}
+ #juego #figura{max-width:100%;height:min(190px,24dvh);object-fit:contain}
+ #juego #opciones{gap:7px}
+ #juego .tarjeta{min-height:50px;padding:9px;font-size:clamp(15px,4vw,19px)}
+ #juego #siguiente{min-height:44px}
+}
+
+
+/* Salida a la portada principal del proyecto desde cualquier pantalla */
+.volver-arcade {
+ position:fixed;top:10px;left:12px;z-index:999999;min-height:38px;
+ display:inline-flex;align-items:center;gap:5px;padding:7px 12px;
+ border:2px solid rgba(255,255,255,.7);border-radius:12px;
+ background:rgba(9,22,51,.92);color:white;text-decoration:none;
+ font:700 13px/1.2 system-ui,Arial,sans-serif;box-shadow:0 2px 10px #0009;
+}
+.volver-arcade:hover,.volver-arcade:focus-visible{background:#2252a2;outline:2px solid #fff;}
+@media(max-width:600px){.volver-arcade{top:8px;left:7px;padding:6px 8px;min-height:36px;font-size:12px;}}
+
+
+/* Ajustes solicitados: portada sin estirarse en celular y temporizador visual oculto */
+#tiempo{display:none !important;}
+@media(max-width:720px){
+ #portada{position:relative;min-height:100dvh;height:auto;padding:12px 10px 20px !important;display:flex;flex-direction:column;justify-content:space-between;gap:12px;}
+ #portada .portada-arte{position:static !important;inset:auto !important;width:100% !important;height:auto !important;max-height:74dvh;object-fit:contain !important;object-position:center center !important;max-width:100%;}
+ #portada #comenzar{position:static !important;left:auto !important;bottom:auto !important;transform:none !important;align-self:center;margin-top:auto;}
+}
+
+/* Ajuste final solicitado: portada móvil de Mathrix más compacta, sin verse ancha. */
+@media(max-width:720px){
+  body #portada{position:relative !important; width:100% !important; min-height:100dvh !important; height:100dvh !important; padding:12px 10px 22px !important; display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:space-between !important; overflow:hidden !important; background:#032365 !important;}
+  body #portada .portada-arte{position:static !important; inset:auto !important; display:block !important; width:100% !important; height:auto !important; max-width:100% !important; max-height:62dvh !important; margin:0 auto !important; object-fit:contain !important; object-position:center center !important;}
+  body #portada #comenzar{position:static !important; left:auto !important; bottom:auto !important; transform:none !important; margin:8px auto 0 !important; align-self:center !important;}
+}
+
+/* CRÍTICO: la portada oculta no debe seguir ocupando toda la pantalla. */
+body #portada[hidden],body #bienvenida[hidden],body #juego[hidden],body #final[hidden]{display:none!important;}
+@media(max-width:720px){
+ body #portada:not([hidden]){height:calc(100dvh - var(--arcade-nav-altura))!important;min-height:0!important;}
+ body #portada .portada-arte{max-height:calc(100dvh - var(--arcade-nav-altura) - 100px)!important;}
+ #bienvenida,#juego,#final{margin:10px auto!important;padding:15px!important;width:calc(100% - 18px)!important;}
+}
+
+/* Pantalla final de Mathrix: GAME OVER con información separada y clara. */
+#final {
+  width:min(92%,680px); margin:clamp(12px,4vh,42px) auto;
+  padding:clamp(20px,4vw,38px);
+  text-align:center; border:3px solid #48dcff; border-radius:24px;
+  background:linear-gradient(150deg,#142e70 0%,#101c48 100%);
+  box-shadow:0 15px 42px rgba(0,0,0,.25);
+}
+#final .final-icono {font-size:clamp(52px,12vw,85px);line-height:1;display:block;margin:0 auto 10px;animation:entradaGameOver .5s ease-out both;}
+#final #titulo-final {margin:0 0 8px; font-size:clamp(30px,8vw,54px);line-height:1.05;letter-spacing:.045em;color:#ffd65a;text-shadow:3px 4px #7b235d;}
+#final .final-subtitulo {margin:0 auto 18px;font-size:clamp(16px,4vw,23px);color:#e6f4ff;}
+#final .final-estadisticas {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0 18px;}
+#final .final-dato {background:#081944;border:1px solid #5287d9;border-radius:12px;padding:11px 5px;display:grid;gap:8px;}
+#final .final-dato span{font-size:clamp(11px,2.6vw,15px);font-weight:600;color:#b9d4ff;}
+#final .final-dato strong{font-size:clamp(23px,5vw,35px);line-height:1;color:white;}
+#final .final-motivo {margin:0 auto 10px;padding:12px 16px;border-radius:12px;background:#351c47;border:1px solid #a767ab;line-height:1.45;font-size:clamp(14px,3.5vw,19px);}
+#final .final-nota {color:#d1dfff;font-size:clamp(12px,3vw,15px);line-height:1.4;margin:0 auto 22px;}
+#final #repetir{background:#ed1c94;min-height:48px;padding:13px 24px;font-size:clamp(16px,4vw,20px);box-shadow:0 5px 0 #7a1d69;}
+#final.final-victoria #titulo-final{color:#b4ff9b;text-shadow:3px 4px #1c5e4f;}
+#final.final-victoria .final-motivo{background:#103b3b;border-color:#37a780;}
+@keyframes entradaGameOver{from{opacity:0;transform:scale(.45) rotate(-12deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
+@media(prefers-reduced-motion:reduce){#final .final-icono{animation:none;}}
+@media(max-width:550px){
+ #final{margin:12px auto;padding:18px 13px 24px;}
+ #final .final-estadisticas{gap:6px;}
+ #final .final-dato{padding:10px 2px;}
+ #final .final-dato span{font-size:11px;}
+}
+
+/* Expo Math Arcade: portadas con acceso visible y verde para jugar (v13). */
+
+body #portada:not([hidden]){
+  height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;
+  max-height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+#portada #comenzar{
+  z-index:10 !important;
+  background:#ffd331 !important;color:#0b204a !important;border:2px solid white !important;
+  border-radius:14px !important;font-size:clamp(16px,2.2vw,20px) !important;
+  font-weight:900 !important;padding:11px 25px !important;
+  min-height:46px !important;box-shadow:0 5px 0 #a16a00,0 6px 14px #0007 !important;
+}
+#bienvenida #jugar{
+  background:#087d42 !important;color:white !important;border:2px solid #d6ffdf !important;
+  border-radius:12px !important;font-weight:850 !important;box-shadow:0 4px 0 #064b2a;
+}
+@media(min-width:721px){
+ #portada #comenzar{position:absolute !important;bottom:clamp(15px,3vh,28px) !important;
+   left:50% !important;transform:translateX(-50%) !important;}
+}
+@media(max-width:720px){
+ body #portada:not([hidden]){display:flex !important;flex-direction:column !important;justify-content:flex-end !important;align-items:center !important;padding:10px 10px 18px !important;}
+ #portada .portada-arte{flex:1 1 auto !important;min-height:0 !important;max-height:calc(100% - 67px) !important;width:100% !important;height:auto !important;object-fit:contain !important;}
+ #portada #comenzar{position:static !important;left:auto !important;bottom:auto !important;
+   transform:none !important;margin:10px auto 0 !important;padding:10px 20px !important;flex-shrink:0 !important;}
+}
+
+
+
+/* v15: botones consistentes */
+button{border-radius:14px !important;font-weight:900 !important;border:2px solid #fff !important;}
+#repetir,#jugarPortada,#jugarInstrucciones,#siguiente{background:linear-gradient(180deg,#1ab864 0%,#0d8b47 100%) !important;color:#fff !important;box-shadow:0 5px 0 #076131,0 10px 18px rgba(0,0,0,.16) !important;}
+#volverPortada,#volverPortadaInstrucciones,#volverInicio{background:linear-gradient(180deg,#3e72f2 0%,#1846b9 100%) !important;color:#fff !important;box-shadow:0 5px 0 #0f2f82,0 10px 18px rgba(0,0,0,.16) !important;}
+
+
+/* Sonidos Mathrix · expo Math Pixels */
+#sonidoMathrix{position:fixed!important;top:12px;right:12px;z-index:10001!important;min-height:40px;}
+@media(max-width:600px){#sonidoMathrix{top:7px;right:7px;font-size:11px!important;min-height:36px;}}
+#sonidoMathrix{border:2px solid #fff!important;border-radius:12px!important;background:linear-gradient(180deg,#1b74da,#123b98)!important;color:#fff!important;box-shadow:0 4px 0 #071b55!important;padding:7px 10px!important;white-space:nowrap;font-size:clamp(12px,1.3vw,16px)!important;}
+#sonidoMathrix:focus-visible{outline:3px solid #ffe46f;outline-offset:3px;}
+@media(max-width:600px){#sonidoMathrix{padding:6px 8px!important;}}
+
+</style>
+<link rel="stylesheet" href="../../assets/arcade-nav.css">
+</head>
+
+<body>
+<button id="sonidoMathrix" type="button" aria-label="Silenciar música y efectos de Mathrix" aria-pressed="false">🔊 Silenciar</button>
+<main>
+
+        <!-- ==================================================
+             7. EDITAR: TEXTOS DE PORTADA
+             ================================================== -->
+
+        <!-- PANTALLA 1: la imagen ya incluye el nombre del juego. -->
+        <section id="portada" aria-label="Portada de Mathrix">
+            <!-- EDITAR: pueden sustituir este archivo por su portada. -->
+            <img class="portada-arte" src="PORTADA-MATHRIX.webp"
+                 alt="Mathrix: suma, resta, multiplica, avanza">
+            <button id="comenzar" class="boton" type="button">Bienvenida</button>
+        </section>
+
+        <!-- PANTALLA 2: bienvenida e instrucciones, sin tapar la portada. -->
+        <section id="bienvenida" class="panel" hidden aria-labelledby="titulo-bienvenida">
+            <h1 id="titulo-bienvenida" tabindex="-1">¡Bienvenidos a Mathrix!</h1>
+            <!-- EDITAR: presentación e integrantes. -->
+            <p class="bienvenida">Hola papás: observen las figuras y resuelvan los retos
+                matemáticos para superar los cinco niveles.</p>
+            <p>Creado por: ISABELA, AMY, MARCELO Y LUZ</p>
+            <div class="instrucciones">
+                <h2>Instrucciones</h2>
+                <ol>
+                    <li>Observa la figura o lee la operación de la tarjeta superior.</li>
+                    <li>Tienes 30 segundos por pregunta para seleccionar la tarjeta con la respuesta correcta.</li>
+                    <li>Comienzas cada nivel con 3 vidas. Un error o tiempo agotado resta una vida.</li>
+                    <li>Cada acierto suma 10 puntos y lanza confeti. Los puntos se acumulan entre niveles.</li>
+                    <li>Presiona Siguiente para avanzar. Si pierdes las 3 vidas, termina la partida.</li>
+                </ol>
+            </div>
+            <div class="acciones">
+                <button id="regresar-portada" class="boton" type="button">Volver a portada</button>
+                <button id="jugar" class="boton" type="button">Jugar</button>
+            </div>
+        </section>
+
+        <!-- ==================================================
+             8. PANTALLA DEL JUEGO
+             ================================================== -->
+
+        <section id="juego" class="panel" hidden>
+            <header class="barra">
+                <h2 id="nombre-nivel"></h2>
+
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><button id="volver" class="boton" type="button">Volver a portada</button></div>
+            </header>
+
+            <div class="marcadores">
+                <span>❤️ Vidas: <span id="vidas">3</span></span>
+
+                <span>⭐ Puntos: <span id="puntos">0</span></span>
+
+                <span id="progreso"></span>
+
+                <span id="tiempo" role="timer"></span>
+            </div>
+
+            <!-- Tarjeta superior con la operación o pregunta. -->
+            <div class="tarjeta-operacion">
+                <p class="etiqueta-reto">RETO ACTUAL</p>
+
+                <h3 id="pregunta" tabindex="-1"></h3>
+
+                <!-- Solo aparece si la pregunta tiene imagen. -->
+                <div id="zona-imagen" hidden>
+                    <img id="figura" alt="">
+                    <p id="error-imagen" hidden></p>
+                </div>
+            </div>
+
+            <p>Elige la tarjeta con la respuesta correcta:</p>
+
+            <!-- JavaScript crea aquí las tarjetas. -->
+            <div id="opciones" aria-labelledby="pregunta"></div>
+
+            <p id="mensaje" role="status" aria-live="polite"></p>
+
+            <button id="siguiente" class="boton" type="button" hidden>
+                Siguiente
+            </button>
+        </section>
+
+        <!-- ==================================================
+             9. PANTALLA FINAL
+             ================================================== -->
+
+        <section id="final" class="panel" hidden aria-labelledby="titulo-final">
+            <div class="final-icono" id="final-icono" aria-hidden="true">💥</div>
+            <h1 id="titulo-final" tabindex="-1">GAME OVER</h1>
+            <p class="final-subtitulo" id="final-subtitulo"></p>
+            <div class="final-estadisticas" aria-label="Resultado de la partida">
+              <div class="final-dato"><span>⭐ Puntos</span><strong id="final-puntos">0</strong></div>
+              <div class="final-dato"><span>✅ Aciertos</span><strong id="final-aciertos">0</strong></div>
+              <div class="final-dato"><span>🧩 Preguntas</span><strong id="final-preguntas">0</strong></div>
+            </div>
+            <p class="final-motivo" id="resultado"></p>
+            <p class="final-nota" id="final-nota"></p>
+            <button id="repetir" class="boton" type="button">↻ Jugar de nuevo</button>
+        </section>
+
+    </main>
+
+    <script>
+    // Música en portada, bienvenida y partida; efectos independientes.
+    const musicaMathrix = new Audio('sonidos/duranteeljuego-mathrix.mp3');
+    musicaMathrix.loop=true; musicaMathrix.preload='none'; musicaMathrix.volume=.14;
+    const efectosMathrix = {
+      correcto:new Audio('sonidos/correcto-mathrix.mp3'),
+      nivel:new Audio('sonidos/nivelcompleto-mathrix.mp3'),
+      ganar:new Audio('sonidos/ganaste-mathrix.mp3'),
+      perder:new Audio('sonidos/perdiste-mathrix.mp3'),
+      incorrecto:new Audio('sonidos/incorrecto-mathpixels.mp3')
+    };
+    Object.values(efectosMathrix).forEach(e=>{e.preload='none';e.volume=.85});
+    let sonidoMathrixActivo=true, efectoMathrixActual=null;
+    const controlAudioMathrix=document.getElementById('sonidoMathrix');
+    function actualizarAudioMathrix(){
+      const pantallaVisible=['portada','bienvenida','juego'].some(id=>!document.getElementById(id).hidden);
+      if(!sonidoMathrixActivo||document.hidden||!pantallaVisible){musicaMathrix.pause();return;}
+      if(musicaMathrix.paused){try{const p=musicaMathrix.play();if(p?.catch)p.catch(()=>{});}catch(e){}}
+    }
+    function pararMusicaMathrix(){musicaMathrix.pause();musicaMathrix.currentTime=0;}
+    function efectoSonoroMathrix(tipo){
+      if(!sonidoMathrixActivo||document.hidden)return;
+      const e=efectosMathrix[tipo];if(!e)return;
+      if(efectoMathrixActual){efectoMathrixActual.pause();efectoMathrixActual.currentTime=0;}
+      efectoMathrixActual=e;
+      musicaMathrix.volume=.035;
+      e.currentTime=0;
+      e.onended=()=>{if(efectoMathrixActual===e){efectoMathrixActual=null;musicaMathrix.volume=.14;}};
+      try{const p=e.play();if(p?.catch)p.catch(()=>{musicaMathrix.volume=.14;});}catch(error){musicaMathrix.volume=.14;}
+    }
+    controlAudioMathrix.addEventListener('click',()=>{
+      sonidoMathrixActivo=!sonidoMathrixActivo;
+      controlAudioMathrix.textContent=sonidoMathrixActivo?'🔊 Silenciar':'🔇 Activar sonido';
+      controlAudioMathrix.setAttribute('aria-pressed',String(!sonidoMathrixActivo));
+      if(!sonidoMathrixActivo){pararMusicaMathrix();if(efectoMathrixActual)efectoMathrixActual.pause();}
+      else actualizarAudioMathrix();
+    });
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){musicaMathrix.pause();if(efectoMathrixActual)efectoMathrixActual.pause();}else actualizarAudioMathrix();});
+    document.addEventListener('pointerdown',actualizarAudioMathrix,{capture:true,passive:true});
+    document.addEventListener('keydown',actualizarAudioMathrix,{capture:true});
+    window.addEventListener('pagehide',()=>{musicaMathrix.pause();if(efectoMathrixActual)efectoMathrixActual.pause();});
+    actualizarAudioMathrix();
+    </script>
+    <script>
+        /*
+        =====================================================
+        10. EDITAR: CONFIGURACIÓN GENERAL
+        =====================================================
+        */
+
+        // EDITAR: cantidad de vidas al comenzar CADA NIVEL.
+        const VIDAS_INICIALES = 3;
+
+        /*
+        =====================================================
+        11. EDITAR: NIVELES Y PREGUNTAS
+        =====================================================
+
+        nombre:
+            Título del nivel.
+
+        segundos:
+            Tiempo disponible POR PREGUNTA.
+
+        texto:
+            Pregunta u operación.
+
+        opciones:
+            Respuestas de las tarjetas.
+
+        correcta:
+            Texto EXACTO de la respuesta correcta.
+            Debe aparecer una sola vez en opciones.
+
+        imagen:
+            Ruta de la figura del primer nivel.
+
+        descripcion:
+            Descripción para lectores de pantalla.
+
+        Conserven las comas entre preguntas y entre niveles.
+        */
+
+        // Los 50 ejercicios son los mismos de la versión Python comentada.
+        // Cada nivel contiene diez retos escritos uno por uno y en orden fijo.
+        // Las tarjetas de respuesta cambian de posición para evitar memorizar su lugar.
+        // Los corchetes [ ] agrupan los diez ejercicios de un nivel.
+        // Las llaves { } agrupan los datos de UN ejercicio.
+        // Para editar un reto, cambia su texto, sus opciones y su respuesta correcta.
+        // Conserva las comillas y las comas; correcta debe aparecer una vez en opciones.
+
+        // NIVEL 1: DIEZ EJERCICIOS.
+        const EJERCICIOS_FIGURAS = [
+            // Ejercicio 1 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "HEXAGONO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Hexágono", "Rectángulo", "Triángulo", "Círculo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Hexágono"
+            },
+
+            // Ejercicio 2 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "RECTANGULO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Rectángulo", "Hexágono", "Triángulo", "Círculo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Rectángulo"
+            },
+
+            // Ejercicio 3 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "TRIANGULO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Triángulo", "Hexágono", "Rectángulo", "Círculo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Triángulo"
+            },
+
+            // Ejercicio 4 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "CIRCULO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Círculo", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Círculo"
+            },
+
+            // Ejercicio 5 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "ROMBO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Rombo", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Rombo"
+            },
+
+            // Ejercicio 6 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "PENTAGONO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Pentágono", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Pentágono"
+            },
+
+            // Ejercicio 7 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "OVALO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Óvalo", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Óvalo"
+            },
+
+            // Ejercicio 8 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "TRAPECIO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Trapecio", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Trapecio"
+            },
+
+            // Ejercicio 9 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "CUADRADO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Cuadrado", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Cuadrado"
+            },
+
+            // Ejercicio 10 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cómo se llama esta figura?",
+                // Nombre de la imagen: guárdala en la misma carpeta que este HTML.
+                imagen: "OCTAGONO.webp",
+                // Texto para lectores de pantalla; no aparece como una pista visible.
+                descripcion: "Figura para identificar en este reto.",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["Octágono", "Hexágono", "Rectángulo", "Triángulo"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "Octágono"
+            }
+
+        ];
+
+        // NIVEL 2: DIEZ EJERCICIOS.
+        const EJERCICIOS_OPERACIONES = [
+            // Ejercicio 1 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 25 + 17?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["42", "32", "41", "52"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "42"
+            },
+
+            // Ejercicio 2 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 48 - 23?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["25", "15", "24", "35"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "25"
+            },
+
+            // Ejercicio 3 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 7 × 6?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["42", "32", "41", "52"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "42"
+            },
+
+            // Ejercicio 4 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 56 ÷ 8?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["7", "5", "6", "8"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "7"
+            },
+
+            // Ejercicio 5 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 34 + 29?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["63", "53", "62", "73"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "63"
+            },
+
+            // Ejercicio 6 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 72 - 38?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["34", "24", "33", "44"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "34"
+            },
+
+            // Ejercicio 7 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 9 × 8?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["72", "62", "71", "82"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "72"
+            },
+
+            // Ejercicio 8 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 63 ÷ 7?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["9", "7", "8", "10"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "9"
+            },
+
+            // Ejercicio 9 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 46 + 28?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["74", "64", "73", "84"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "74"
+            },
+
+            // Ejercicio 10 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 81 ÷ 9?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["9", "7", "8", "10"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "9"
+            }
+
+        ];
+
+        // NIVEL 3: DIEZ EJERCICIOS.
+        const EJERCICIOS_JERARQUIA = [
+            // Ejercicio 1 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 18 ÷ (3 + 3)?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["3", "1", "2", "4"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "3"
+            },
+
+            // Ejercicio 2 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 4 × 2 + 6?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["14", "12", "13", "15"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "14"
+            },
+
+            // Ejercicio 3 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 20 - 8 ÷ 2?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["16", "14", "15", "17"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "16"
+            },
+
+            // Ejercicio 4 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es (6 + 4) ÷ 2?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["5", "3", "4", "6"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "5"
+            },
+
+            // Ejercicio 5 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 8 + 4 × 3?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["20", "10", "19", "30"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "20"
+            },
+
+            // Ejercicio 6 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 18 - 6 ÷ 2?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["15", "13", "14", "16"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "15"
+            },
+
+            // Ejercicio 7 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es (8 + 4) × 3?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["36", "26", "35", "46"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "36"
+            },
+
+            // Ejercicio 8 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 5 × (7 - 3) + 6?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["26", "16", "25", "36"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "26"
+            },
+
+            // Ejercicio 9 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 30 - 5 × 4 + 6?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["16", "14", "15", "17"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "16"
+            },
+
+            // Ejercicio 10 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuánto es 20 + 16 ÷ 4 × 2?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["28", "18", "27", "38"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "28"
+            }
+
+        ];
+
+        // NIVEL 4: DIEZ EJERCICIOS.
+        const EJERCICIOS_MCM = [
+            // Ejercicio 1 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 24 y 36?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["72", "62", "71", "82"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "72"
+            },
+
+            // Ejercicio 2 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 45, 60 y 75?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["900", "890", "899", "910"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "900"
+            },
+
+            // Ejercicio 3 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 18, 30 y 42?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["630", "620", "629", "640"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "630"
+            },
+
+            // Ejercicio 4 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 32 y 48?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["96", "86", "95", "106"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "96"
+            },
+
+            // Ejercicio 5 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 12 y 18?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["36", "26", "35", "46"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "36"
+            },
+
+            // Ejercicio 6 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 8 y 20?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["40", "30", "39", "50"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "40"
+            },
+
+            // Ejercicio 7 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 15 y 25?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["75", "65", "74", "85"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "75"
+            },
+
+            // Ejercicio 8 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 14 y 21?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["42", "32", "41", "52"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "42"
+            },
+
+            // Ejercicio 9 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 9 y 12?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["36", "26", "35", "46"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "36"
+            },
+
+            // Ejercicio 10 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es el MCM de 16 y 24?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["48", "38", "47", "58"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "48"
+            }
+
+        ];
+
+        // NIVEL 5: DIEZ EJERCICIOS.
+        const EJERCICIOS_RAICES = [
+            // Ejercicio 1 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 144?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["12", "10", "11", "13"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "12"
+            },
+
+            // Ejercicio 2 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 169?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["13", "11", "12", "14"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "13"
+            },
+
+            // Ejercicio 3 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 196?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["14", "12", "13", "15"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "14"
+            },
+
+            // Ejercicio 4 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 225?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["15", "13", "14", "16"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "15"
+            },
+
+            // Ejercicio 5 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 1024?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["32", "22", "31", "42"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "32"
+            },
+
+            // Ejercicio 6 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 256?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["16", "14", "15", "17"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "16"
+            },
+
+            // Ejercicio 7 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 289?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["17", "15", "16", "18"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "17"
+            },
+
+            // Ejercicio 8 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 324?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["18", "16", "17", "19"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "18"
+            },
+
+            // Ejercicio 9 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 400?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["20", "10", "19", "30"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "20"
+            },
+
+            // Ejercicio 10 de 10: cambia aquí este reto.
+            {
+                // Pregunta que aparece grande en la tarjeta.
+                texto: "¿Cuál es la raíz cuadrada de 625?",
+                // Cuatro respuestas que aparecerán como botones.
+                opciones: ["25", "15", "24", "35"],
+                // Respuesta válida; debe coincidir exactamente con una de las opciones.
+                correcta: "25"
+            }
+
+        ];
+
+        // Tiempo POR PREGUNTA, igual que en el programa Python.
+        const CONFIGURACION_NIVELES = [
+            { nombre: "Nivel 1 · Figuras", segundos: 30, preguntas: EJERCICIOS_FIGURAS },
+            { nombre: "Nivel 2 · Operaciones", segundos: 30, preguntas: EJERCICIOS_OPERACIONES },
+            { nombre: "Nivel 3 · Jerarquía de operaciones", segundos: 30, preguntas: EJERCICIOS_JERARQUIA },
+            { nombre: "Nivel 4 · Mínimo común múltiplo", segundos: 30, preguntas: EJERCICIOS_MCM },
+            { nombre: "Nivel 5 · Raíces cuadradas", segundos: 30, preguntas: EJERCICIOS_RAICES }
+        ];
+
+        // Guarda los niveles de esta partida; sus preguntas conservan el orden escrito arriba.
+        let NIVELES = [];
+
+        // Esta función cambia el orden de las tarjetas de respuesta.
+        // No cambia cuál es la correcta ni el orden de los ejercicios.
+        function mezclar(lista) {
+            const copia = [...lista];
+            for (let i = copia.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copia[i], copia[j]] = [copia[j], copia[i]];
+            }
+            return copia;
+        }
+
+        /* ==================================================
+           12. ELEMENTOS DE LA PÁGINA
+           ================================================== */
+
+        const portada = document.getElementById("portada");
+        const bienvenida = document.getElementById("bienvenida");
+        const juego = document.getElementById("juego");
+        const pantallaFinal = document.getElementById("final");
+
+        const nombreNivel = document.getElementById("nombre-nivel");
+        const pregunta = document.getElementById("pregunta");
+        const progreso = document.getElementById("progreso");
+        const puntos = document.getElementById("puntos");
+        const contadorVidas = document.getElementById("vidas");
+        const tiempo = document.getElementById("tiempo");
+
+        const zonaImagen = document.getElementById("zona-imagen");
+        const figura = document.getElementById("figura");
+        const errorImagen = document.getElementById("error-imagen");
+
+        const opciones = document.getElementById("opciones");
+        const mensaje = document.getElementById("mensaje");
+        const siguiente = document.getElementById("siguiente");
+
+        /* Variables que cambian durante el juego. */
+        // JavaScript cuenta desde cero: 0 representa el primer nivel o la primera pregunta.
+        let nivelActual = 0;
+        let preguntaActual = 0;
+        let aciertos = 0;
+        let puntuacion = 0;
+        let vidas = VIDAS_INICIALES;
+        let respondidas = 0;
+        let omitidas = 0;
+        let estado = "portada";
+
+        /* Variables del cronómetro y las imágenes. */
+        let reloj = null;
+        let limite = 0;
+        let versionPregunta = 0;
+
+        /* Cuenta automáticamente todas las preguntas. */
+        const totalPreguntas = CONFIGURACION_NIVELES.reduce(function (total, nivel) {
+            return total + nivel.preguntas.length;
+        }, 0);
+
+        /* ==================================================
+           13. CONFETI AL ACERTAR
+           ================================================== */
+
+        function lanzarConfeti() {
+            // EDITAR: colores del confeti, pueden agregar más
+            const colores = [
+                "blue", "red", "yellow", "pink" 
+            ];
+
+            // EDITAR: cantidad y duración de los papelitos.
+            const cantidad = 70;
+            const duracion = 1800;
+
+            const contenedor = document.createElement("div");
+            contenedor.className = "capa-confeti";
+            contenedor.setAttribute("aria-hidden", "true");
+
+            document.body.appendChild(contenedor);
+
+            for (let i = 0; i < cantidad; i++) {
+                const papelito = document.createElement("span");
+                papelito.className = "papelito";
+
+                papelito.style.backgroundColor = colores[
+                    Math.floor(Math.random() * colores.length)
+                ];
+
+                papelito.style.left = Math.random() * 100 + "%";
+
+                papelito.style.borderRadius =
+                    i % 3 === 0 ? "50%" : "2px";
+
+                contenedor.appendChild(papelito);
+
+                const desplazamiento = Math.random() * 300 - 150;
+                const giro = Math.random() * 1000 - 500;
+
+                papelito.animate(
+                    [
+                        {
+                            transform: "translate(0, 0) rotate(0deg)",
+                            opacity: 1
+                        },
+                        {
+                            transform:
+                                "translate(" + desplazamiento + "px, " +
+                                (window.innerHeight + 40) +
+                                "px) rotate(" + giro + "deg)",
+                            opacity: 0
+                        }
+                    ],
+                    {
+                        duration: duracion,
+                        delay: Math.random() * 250,
+                        easing: "ease-in",
+                        fill: "forwards"
+                    }
+                );
+            }
+
+            // Limpia los elementos después de la animación.
+            setTimeout(function () {
+                contenedor.remove();
+            }, duracion + 300);
+        }
+
+        function quitarConfeti() {
+            document.querySelectorAll(".capa-confeti").forEach(
+                function (capa) {
+                    capa.remove();
+                }
+            );
+        }
+
+        /* ==================================================
+           14. LIMPIAR LA PREGUNTA ANTERIOR
+           ================================================== */
+
+        function limpiarPregunta() {
+            clearInterval(reloj);
+            reloj = null;
+            // Ignora eventos pendientes de imágenes anteriores.
+            versionPregunta++;
+            figura.onload = null;
+            figura.onerror = null;
+            figura.removeAttribute("src");
+        }
+
+        /* ==================================================
+           15. COMENZAR UNA PARTIDA
+           ================================================== */
+
+        function comenzar() {
+            limpiarPregunta();
+            quitarConfeti();
+
+            nivelActual = 0;
+            preguntaActual = 0;
+            aciertos = 0;
+            puntuacion = 0;
+            NIVELES = CONFIGURACION_NIVELES.map(function (nivel) {
+                // Copia los diez ejercicios del nivel sin cambiar su orden.
+                return { ...nivel, preguntas: [...nivel.preguntas] };
+            });
+            vidas = VIDAS_INICIALES;
+            respondidas = 0;
+            omitidas = 0;
+
+            puntos.textContent = puntuacion;
+            contadorVidas.textContent = vidas;
+
+            portada.hidden = true;
+            bienvenida.hidden = true;
+            pantallaFinal.hidden = true;
+            juego.hidden = false;
+            actualizarAudioMathrix();
+
+            window.scrollTo({top:0,behavior:"instant"});
+            mostrarPregunta();
+        }
+
+        /* ==================================================
+           16. MOSTRAR EL RETO Y SUS RESPUESTAS
+           ================================================== */
+
+        function mostrarPregunta() {
+            limpiarPregunta();
+            estado = "cargando";
+
+            const versionActual = versionPregunta;
+            const nivel = NIVELES[nivelActual];
+            const actual = nivel.preguntas[preguntaActual];
+
+            // Conecta el nivel actual con su fondo en el CSS.
+            // Los alumnos editan los fondos en las reglas #juego[data-nivel="..."] .
+            juego.setAttribute("data-nivel", String(nivelActual + 1));
+
+            nombreNivel.textContent = nivel.nombre;
+            pregunta.textContent = actual.texto;
+
+            progreso.textContent =
+                "Pregunta " + (preguntaActual + 1) +
+                " de " + nivel.preguntas.length;
+
+            mensaje.textContent = "";
+            siguiente.hidden = true;
+
+            tiempo.textContent = "Preparando pregunta…";
+            tiempo.classList.remove("urgente");
+
+            opciones.replaceChildren();
+
+            zonaImagen.hidden = !actual.imagen;
+            figura.hidden = false;
+            errorImagen.hidden = true;
+
+            // Crea una tarjeta por cada opción.
+            mezclar(actual.opciones).forEach(function (texto) {
+                const tarjeta = document.createElement("button");
+
+                tarjeta.type = "button";
+                tarjeta.className = "tarjeta";
+                tarjeta.textContent = texto;
+                tarjeta.disabled = true;
+
+                tarjeta.addEventListener("click", function () {
+                    responder(tarjeta, texto);
+                });
+
+                opciones.appendChild(tarjeta);
+            });
+
+            pregunta.focus();
+
+            if (actual.imagen) {
+                figura.alt = actual.descripcion;
+
+                // Comienza el tiempo cuando carga la figura.
+                figura.onload = function () {
+                    if (versionActual !== versionPregunta) return;
+                    if (estado !== "cargando") return;
+
+                    activarPregunta();
+                };
+
+                // Una imagen faltante no quita vidas.
+                figura.onerror = function () {
+                    if (versionActual !== versionPregunta) return;
+                    if (estado !== "cargando") return;
+
+                    estado = "imagen-pendiente";
+
+                    figura.hidden = true;
+                    errorImagen.hidden = false;
+
+                    errorImagen.textContent =
+                        "No se encontró: " + actual.imagen;
+
+                    tiempo.textContent = "Imagen pendiente";
+
+                    mensaje.textContent =
+                        "Revisen el nombre y la carpeta de la imagen. " +
+                        "Pueden omitir esta pregunta sin perder vidas.";
+
+                    siguiente.textContent = "Omitir imagen pendiente";
+                    siguiente.hidden = false;
+                    siguiente.focus();
+                };
+
+                figura.src = actual.imagen;
+            } else {
+                activarPregunta();
+            }
+        }
+
+        /* ==================================================
+           17. ACTIVAR EL CRONÓMETRO
+           ================================================== */
+
+        function activarPregunta() {
+            estado = "jugando";
+
+            opciones.querySelectorAll("button").forEach(function (boton) {
+                boton.disabled = false;
+            });
+
+            // Lee el tiempo de este nivel: 30 segundos por pregunta en todos los niveles.
+            const segundos = NIVELES[nivelActual].segundos;
+
+            // Date.now() da la hora en milisegundos; multiplicar por 1000 convierte los segundos.
+            limite = Date.now() + segundos * 1000;
+
+            actualizarReloj();
+            reloj = setInterval(actualizarReloj, 100);
+        }
+
+        function actualizarReloj() {
+            if (estado !== "jugando") return;
+
+            const restante = Math.max(
+                0,
+                Math.ceil((limite - Date.now()) / 1000)
+            );
+
+            tiempo.textContent = "Tiempo: " + restante + " s";
+            tiempo.classList.toggle("urgente", restante <= 3);
+
+            if (restante === 0) {
+                terminarPregunta(null, false, true);
+            }
+        }
+
+        /* ==================================================
+           18. REVISAR LA RESPUESTA ELEGIDA
+           ================================================== */
+
+        function responder(tarjeta, textoElegido) {
+            if (estado !== "jugando") return;
+
+            // Evita responder después del tiempo límite.
+            if (Date.now() >= limite) {
+                terminarPregunta(null, false, true);
+                return;
+            }
+
+            const actual =
+                NIVELES[nivelActual].preguntas[preguntaActual];
+
+            // === comprueba que el texto del botón sea igual a la respuesta correcta.
+            const esCorrecta = textoElegido === actual.correcta;
+
+            terminarPregunta(tarjeta, esCorrecta, false);
+        }
+
+        function terminarPregunta(tarjetaElegida, esCorrecta, sinTiempo) {
+            // Evita descontar dos vidas por una misma pregunta.
+            if (estado !== "jugando") return;
+
+            estado = "respondida";
+            respondidas++;
+
+            clearInterval(reloj);
+            reloj = null;
+
+            const actual =
+                NIVELES[nivelActual].preguntas[preguntaActual];
+
+            // Bloquea las opciones y señala la correcta.
+            opciones.querySelectorAll("button").forEach(function (tarjeta) {
+                tarjeta.disabled = true;
+
+                if (tarjeta.textContent === actual.correcta) {
+                    tarjeta.classList.add("correcta");
+                }
+            });
+
+            if (esCorrecta) {
+                aciertos++;
+                // += 10 suma diez al total anterior; 50 aciertos permiten ganar 500 puntos.
+                puntuacion += 10;
+                puntos.textContent = puntuacion;
+
+                lanzarConfeti();
+                efectoSonoroMathrix("correcto");
+
+                mensaje.textContent = "¡Correcto! Ganaste 10 puntos.";
+            } else {
+                // -- resta una vida; al llegar a cero termina toda la partida.
+                efectoSonoroMathrix("incorrecto");
+                vidas--;
+                contadorVidas.textContent = vidas;
+
+                if (tarjetaElegida) {
+                    tarjetaElegida.classList.add("incorrecta");
+                }
+
+                const inicio = sinTiempo
+                    ? "Se terminó el tiempo. "
+                    : "Respuesta incorrecta. ";
+
+                mensaje.textContent =
+                    inicio + "Perdiste una vida. La respuesta correcta es: " +
+                    actual.correcta;
+
+                // La partida termina inmediatamente al perder la tercera vida.
+                if (vidas === 0) {
+                    mostrarResultado(
+                        true,
+                        inicio + "La respuesta del último reto era: " +
+                        actual.correcta + "."
+                    );
+
+                    return;
+                }
+            }
+
+            prepararSiguiente();
+            siguiente.focus();
+        }
+
+        /* ==================================================
+           19. PREPARAR EL BOTÓN SIGUIENTE
+           ================================================== */
+
+        function prepararSiguiente() {
+            const nivel = NIVELES[nivelActual];
+
+            const ultimaPregunta =
+                preguntaActual === nivel.preguntas.length - 1;
+
+            const ultimoNivel =
+                nivelActual === NIVELES.length - 1;
+
+            siguiente.hidden = false;
+
+            if (ultimaPregunta && ultimoNivel) {
+                siguiente.textContent = "Ver resultado";
+            } else if (ultimaPregunta) {
+                siguiente.textContent = "Pasar al siguiente nivel";
+            } else {
+                siguiente.textContent = "Siguiente pregunta";
+            }
+        }
+
+        /* ==================================================
+           20. AVANZAR ENTRE PREGUNTAS Y NIVELES
+           ================================================== */
+
+        function avanzar() {
+            if (
+                estado !== "respondida" &&
+                estado !== "imagen-pendiente"
+            ) {
+                return;
+            }
+
+            if (estado === "imagen-pendiente") {
+                omitidas++;
+            }
+
+            // ++ suma uno: pasa al siguiente ejercicio de este mismo nivel.
+            preguntaActual++;
+
+            // Cambia de nivel al terminar sus preguntas.
+            if (
+                preguntaActual >=
+                NIVELES[nivelActual].preguntas.length
+            ) {
+                preguntaActual = 0;
+                if (nivelActual < NIVELES.length - 1) efectoSonoroMathrix("nivel");
+                nivelActual++;
+                // Como en Python: cada nuevo nivel vuelve a tener 3 vidas.
+                if (nivelActual < NIVELES.length) {
+                    vidas = VIDAS_INICIALES;
+                    contadorVidas.textContent = vidas;
+                }
+            }
+
+            if (nivelActual >= NIVELES.length) {
+                mostrarResultado(false, "");
+            } else {
+                mostrarPregunta();
+            }
+        }
+
+        /* ==================================================
+           21. RESULTADO FINAL
+           ================================================== */
+
+        function mostrarResultado(sinVidas, detalle) {
+            limpiarPregunta();
+            estado = "final";
+            pararMusicaMathrix();
+            efectoSonoroMathrix(sinVidas ? "perder" : "ganar");
+            juego.hidden = true;
+            pantallaFinal.hidden = false;
+
+            const tituloFinal = document.getElementById("titulo-final");
+            const icono = document.getElementById("final-icono");
+            const subtitulo = document.getElementById("final-subtitulo");
+            const motivo = document.getElementById("resultado");
+            const nota = document.getElementById("final-nota");
+            pantallaFinal.classList.toggle('final-victoria', !sinVidas);
+            icono.textContent = sinVidas ? '💥' : '🏆';
+            tituloFinal.textContent = sinVidas ? 'GAME OVER' : '¡GANASTE!';
+            subtitulo.textContent = sinVidas ? '¡Se acabaron las vidas!' : '¡Terminaste Mathrix!';
+            document.getElementById('final-puntos').textContent = puntuacion;
+            document.getElementById('final-aciertos').textContent = aciertos;
+            document.getElementById('final-preguntas').textContent = respondidas;
+            if (sinVidas) {
+                quitarConfeti();
+                motivo.textContent = detalle || 'Se terminó la partida.';
+                nota.textContent = '¡Inténtalo otra vez! Cada partida es una oportunidad para mejorar.';
+            } else {
+                motivo.textContent = '¡Completaste todos los niveles!';
+                nota.textContent = 'Te quedaron ' + vidas + ' vidas. El juego contiene ' + totalPreguntas + ' preguntas.';
+            }
+            if (omitidas > 0) {
+                nota.textContent += ' Preguntas omitidas por imágenes pendientes: ' + omitidas + '.';
+            }
+            tituloFinal.focus({preventScroll:true});
+        }
+
+        /* ==================================================
+           22. VOLVER A LA PORTADA
+           ================================================== */
+
+        function volverPortada() {
+            pararMusicaMathrix();
+            if(efectoMathrixActual){efectoMathrixActual.pause();efectoMathrixActual=null;}
+            limpiarPregunta();
+            quitarConfeti();
+
+            estado = "portada";
+
+            juego.hidden = true;
+            pantallaFinal.hidden = true;
+            portada.hidden = false;
+            bienvenida.hidden = true;
+            actualizarAudioMathrix();
+
+            window.scrollTo({top:0,behavior:"instant"});
+            document.getElementById("comenzar").focus();
+        }
+
+        /* ==================================================
+           23. CONECTAR LOS BOTONES
+           ================================================== */
+
+        // Comenzar abre las instrucciones; todavía no inicia el cronómetro.
+        document.getElementById("comenzar").addEventListener("click", function () {
+            portada.hidden = true;
+            bienvenida.hidden = false;
+            estado = "bienvenida";
+            actualizarAudioMathrix();
+            window.scrollTo({top:0,behavior:"instant"});
+            document.getElementById("titulo-bienvenida").focus();
+        });
+
+        // Jugar inicia los cinco niveles.
+        document.getElementById("jugar").addEventListener("click", comenzar);
+        document.getElementById("regresar-portada").addEventListener("click", volverPortada);
+
+        document.getElementById("repetir").addEventListener(
+            "click",
+            comenzar
+        );
+
+        document.getElementById("volver").addEventListener(
+            "click",
+            volverPortada
+        );
+
+        siguiente.addEventListener("click", avanzar);
+    </script>
+
+<script src="../../assets/arcade-nav.js"></script>
+</body>
+</html>

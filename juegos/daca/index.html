@@ -1,0 +1,3460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Arcade | Math Pixels</title>
+
+<style>
+/* =========================================================
+🎮 PLANTILLA MATH ARCADE
+
+GUÍA PARA LOS ALUMNOS
+
+🟦 CAMBIA AQUÍ  = sí puedes modificarlo.
+🟩 OPCIONAL      = úsalo solo si tu juego lo necesita.
+🟥 NO MODIFICAR = déjalo así por ahora.
+
+IMPORTANTE:
+NO existe ningún botón de "Seleccionar archivo".
+Para usar imágenes, súbelas al proyecto y escribe su nombre:
+
+src="personaje.png"
+
+Para personajes SIN fondo blanco, usa imágenes PNG o WEBP
+con fondo transparente.
+   ========================================================= */
+
+/* =========================
+🟥 NO MODIFICAR
+CONFIGURACIÓN GENERAL
+   ========================= */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    overflow-x: hidden;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.pantalla {
+    display: none;
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.pantalla.activa {
+    display: block;
+}
+
+/* =========================================================
+🟦 CAMBIA AQUÍ
+FONDO DE LA PORTADA
+   ========================================================= */
+#portada {
+    background-image: url(media/fondo_2f6ae52b4d04.webp);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* =========================================================
+🟦 CAMBIA AQUÍ
+CADA NIVEL PUEDE TENER UN FONDO DIFERENTE
+   ========================================================= */
+#nivel1 {
+    background-color: #dbc8ff;
+    /*
+    background-image: url("fondo-nivel1.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    */
+}
+
+#nivel2 {
+    background-color: #cdeffd;
+    /*
+    background-image: url("fondo-nivel2.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    */
+}
+
+#nivel3 {
+    background-color: #ffd9ec;
+    /*
+    background-image: url("fondo-nivel3.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    */
+}
+
+#nivel4 {
+    background-color: #fff0b8;
+    /*
+    background-image: url("fondo-nivel4.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    */
+}
+
+#final {
+    background: linear-gradient(135deg, #5a189a, #9d4edd);
+    color: white;
+}
+
+/* =========================================================
+🟦 CAMBIA AQUÍ
+TÍTULOS Y TEXTOS
+   ========================================================= */
+.titulo {
+    margin: 20px 0 10px;
+    font-size: clamp(42px, 7vw, 82px);
+    color: white;
+
+    /* borde de las letras */
+    -webkit-text-stroke: 2px black;
+
+    /* sombra */
+    text-shadow: 4px 4px 8px rgba(0,0,0,.75);
+}
+
+.subtitulo {
+    font-size: clamp(20px, 3vw, 30px);
+    color: white;
+    -webkit-text-stroke: 1px black;
+    text-shadow: 2px 2px 4px rgba(0,0,0,.8);
+}
+
+.titulo-nivel {
+    margin: 8px 0;
+    font-size: 34px;
+    color: #111;
+    text-shadow: 2px 2px 4px rgba(255,255,255,.8);
+}
+
+/* =========================================================
+🟦 CAMBIA AQUÍ
+IMÁGENES DECORATIVAS
+   ========================================================= */
+.imagen-principal {
+    width: min(520px, 85vw);
+    height: auto;
+}
+
+.imagen-izquierda,
+.imagen-derecha,
+.imagen-debajo-titulo {
+    position: absolute;
+    height: auto;
+    object-fit: contain;
+}
+
+.imagen-izquierda {
+    left: 25px;
+    top: 35px;
+    width: 150px;
+}
+
+.imagen-derecha {
+    right: 25px;
+    top: 35px;
+    width: 150px;
+}
+
+.imagen-debajo-titulo {
+    position: relative;
+    display: block;
+    margin: 10px auto;
+    width: 280px;
+}
+
+/* =========================================================
+BOTONES
+   ========================================================= */
+.boton {
+    border: 0;
+    border-radius: 14px;
+    padding: 11px 20px;
+    margin: 6px;
+    background: white;
+    box-shadow: 0 4px 0 rgba(0,0,0,.22);
+    font-weight: bold;
+}
+
+.boton2 {
+    border: 0;
+    border-radius: 14px;
+    padding: 11px 20px;
+    margin: 150px;
+    background: white;
+    box-shadow: 0 4px 0 rgba(0,0,0,.22);
+    font-weight: bold;
+    transition: background-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+.boton:hover {
+    box-shadow: 0 0 20px #fdfcfb, 0 0 40px #5f5e5c; 
+    filter: brightness(1.2);
+    transform: scale(1.05);
+    transition: background-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+.boton2:hover {
+    box-shadow: 0 0 20px #ffd700, 0 0 40px #ffaa00; 
+    filter: brightness(1.2);
+    transform: scale(1.05);
+}
+.boton-principal {
+    background-color: gold;
+    color: white;
+    padding: 16px 42px;
+    font-size: 24px;
+}
+
+/* =========================================================
+HUD = VIDAS, NIVEL, PUNTOS Y TIEMPO
+   ========================================================= */
+.hud {
+    width: min(1300px, 98%);
+    margin: 0 auto 10px;
+    padding: 10px 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    align-items: center;
+    background: rgba(255,255,255,.9);
+    border: 3px solid #111;
+    border-radius: 16px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* =========================================================
+ESCENARIO ANCHO DEL JUEGO
+   ========================================================= */
+.escenario {
+    position: relative;
+    width: min(1150px, 100%, max(333px, calc((100svh - 250px) * 1.8548387)));
+    height: auto;
+    aspect-ratio: 1150 / 620;
+    margin: 10px auto 14px;
+    overflow: hidden;
+    isolation: isolate;
+    border: 4px solid rgba(15, 23, 42, .94);
+    border-radius: 22px;
+    background-color: rgba(255,255,255,.28);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .3), inset 0 0 0 1px rgba(255,255,255,.56);
+}
+
+.escenario::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(15, 23, 42, .12), transparent 22%,
+        transparent 74%, rgba(15, 23, 42, .22));
+    content: "";
+    pointer-events: none;
+}
+
+/* =========================================================
+PERSONAJE / OBJETO 2D
+   ========================================================= */
+.objeto {
+    position: absolute;
+    left: 80px;
+    top: 300px;
+    transition: none; /* La física actualiza la posición en cada cuadro. */
+    z-index: 10;
+}
+
+.personaje-emoji {
+    font-size: 66px;
+}
+
+.personaje-img {
+    width: 95px;
+    height: 95px;
+    object-fit: contain;
+}
+
+/* =========================================================
+⚽ FÚTBOL
+========================================================= */
+.jugador-futbol {
+    position: absolute;
+    width: 62px;
+    height: 62px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 34px;
+    font-weight: bold;
+    transition: left .8s ease, top .8s ease;
+    z-index: 5;
+}
+
+.equipo-a {
+    background: rgba(40,110,255,.85);
+}
+
+.equipo-b {
+    background: rgba(255,70,70,.85);
+}
+
+.balon {
+    width: 62px;
+    height: 62px;
+    display: grid;
+    place-items: center;
+    font-size: 48px;
+    transition: left .55s ease, top .55s ease;
+    z-index: 20;
+}
+
+.flecha-movimiento {
+    position: absolute;
+    z-index: 30;
+    display: none;
+    font-size: 52px;
+    font-weight: bold;
+    color: #111;
+    text-shadow: 2px 2px 3px white;
+    pointer-events: none;
+}
+
+/* =========================================================
+FORMAS 2D
+========================================================= */
+.circulo {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: crimson;
+}
+
+.cuadrado {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: royalblue;
+}
+
+.rectangulo {
+    position: absolute;
+    width: 180px;
+    height: 85px;
+    background: seagreen;
+}
+
+.triangulo {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 110px solid orange;
+}
+
+/* =========================================================
+TARJETAS INTERACTIVAS
+========================================================= */
+.tarjeta {
+    position: absolute;
+    width: 170px;
+    min-height: 210px;
+    padding: 15px;
+    border: 3px solid #111;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 5px 5px 10px rgba(0,0,0,.3);
+    user-select: none;
+    transform-style: preserve-3d;
+    transition: transform .5s ease, left .25s ease, top .25s ease;
+    z-index: 15;
+}
+
+.tarjeta.arrastrable {
+    cursor: grab;
+    touch-action: none;
+}
+
+.tarjeta.volteada {
+    transform: rotateY(180deg);
+    background: #ffd6ff;
+}
+
+.tarjeta-movimiento {
+    animation: moverTarjeta 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes moverTarjeta {
+    from { transform: translateX(-35px); }
+    to   { transform: translateX(35px); }
+}
+
+
+
+/* =========================================================
+🟩 OPCIONES EXTRA: PACMINION / PLATAFORMAS / OBJETOS
+Descomenta solamente lo que tu juego necesite.
+   ========================================================= */
+
+/* PACMINION: paredes del laberinto */
+.pared {
+    position: absolute;
+    border: 1px solid rgba(226, 232, 240, .45);
+    border-radius: 4px;
+    background: linear-gradient(90deg, #334155 0%, #94a3b8 18%, #475569 35%,
+        #1e293b 65%, #64748b 82%, #334155 100%);
+    z-index: 18;
+    box-shadow: inset 0 0 0 1px rgba(226, 232, 240, .28), 0 7px 16px rgba(2, 6, 23, .42);
+}
+.pared.horizontal { height: 5px; }
+.pared.vertical { width: 5px; }
+
+/* PACMINION: barrera verde que se abre al responder bien */
+.barrera {
+    position: absolute;
+    background: #67ff4f;
+    z-index: 22;
+    transition: opacity .35s ease;
+}
+.barrera.abierta {
+    opacity: .08;
+    pointer-events: none;
+}
+
+/* PACMINION: teletransportadores azules */
+.teleport {
+    position: absolute;
+    background: #55d9ff;
+    z-index: 22;
+}
+
+/* PACMINION: meta */
+.meta {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    min-width: 75px;
+    min-height: 35px;
+    font-size: 28px;
+    z-index: 22;
+}
+
+.meta.meta-cooperativa {
+    width: 76px;
+    height: 82px;
+    box-sizing: border-box;
+    border: 2px dashed rgba(226, 232, 240, .92);
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(15, 23, 42, .82), rgba(30, 41, 59, .66));
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: .06em;
+    box-shadow: inset 0 0 22px rgba(125, 211, 252, .14), 0 8px 18px rgba(2, 6, 23, .3);
+}
+
+.meta.meta-cooperativa.ocupada {
+    border-style: solid;
+    border-color: #86efac;
+    background: rgba(22,101,52,.9);
+    box-shadow: 0 0 18px #4ade80;
+}
+
+.separador-coop {
+    position: absolute;
+    z-index: 19;
+    border: 2px solid rgba(224, 242, 254, .92);
+    border-radius: 7px;
+    background: repeating-linear-gradient(0deg, rgba(15, 23, 42, .94) 0 18px,
+        rgba(56, 189, 248, .92) 18px 21px, rgba(15, 23, 42, .94) 21px 38px);
+    box-sizing: border-box;
+    pointer-events: none;
+    box-shadow: 0 0 16px rgba(56, 189, 248, .5), inset 0 0 12px rgba(186, 230, 253, .28);
+}
+
+.palanca-coop {
+    position: absolute;
+    z-index: 24;
+    width: 58px;
+    height: 68px;
+    padding: 0;
+    border: 2px solid #fde68a;
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 50% 72%, #f8fafc 0 4px, #64748b 5px 9px, transparent 10px),
+        linear-gradient(180deg, #475569 0 72%, #1e293b 72% 100%);
+    color: transparent;
+    font-size: 0;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #0f172a, 0 10px 18px rgba(2, 6, 23, .38),
+        inset 0 0 0 2px rgba(255, 255, 255, .16);
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.palanca-coop::before {
+    content: "";
+    position: absolute;
+    left: calc(50% - 3px);
+    top: 16px;
+    width: 6px;
+    height: 31px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #cbd5e1, #fff, #64748b);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .65);
+    transform: rotate(25deg);
+    transform-origin: 50% 100%;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.palanca-coop::after {
+    content: "";
+    position: absolute;
+    left: calc(50% + 3px);
+    top: 5px;
+    width: 19px;
+    height: 19px;
+    border: 2px solid #fecaca;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fca5a5, #ef4444 55%, #991b1b);
+    box-shadow: 0 2px 5px rgba(15, 23, 42, .55), inset 0 1px 2px rgba(255, 255, 255, .5);
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.palanca-coop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 #451a03, 0 13px 22px rgba(2, 6, 23, .42);
+}
+
+.palanca-coop.activada {
+    border-color: #bbf7d0;
+    background:
+        radial-gradient(circle at 50% 72%, #f0fdf4 0 4px, #4ade80 5px 9px, transparent 10px),
+        linear-gradient(180deg, #166534 0 72%, #14532d 72% 100%);
+    box-shadow: 0 0 24px rgba(74, 222, 128, .82), 0 6px 0 #14532d;
+}
+
+.palanca-coop.activada::before {
+    transform: rotate(-25deg);
+}
+
+.palanca-coop.activada::after {
+    border-color: #bbf7d0;
+    background: radial-gradient(circle at 35% 30%, #bbf7d0, #22c55e 55%, #166534);
+    box-shadow: 0 0 12px rgba(74, 222, 128, .8), inset 0 1px 2px rgba(255, 255, 255, .6);
+}
+
+.compuerta-coop {
+    position: absolute;
+    z-index: 18;
+    box-sizing: border-box;
+    border: 3px solid rgba(224, 242, 254, .96);
+    border-radius: 14px 14px 4px 4px;
+    background: repeating-linear-gradient(90deg, rgba(30, 64, 175, .84) 0 12px,
+        rgba(147, 197, 253, .96) 12px 16px, rgba(30, 64, 175, .84) 16px 27px);
+    box-shadow: 0 0 18px rgba(59, 130, 246, .65), inset 0 0 18px rgba(191, 219, 254, .35);
+    transition: opacity .35s ease, transform .35s ease;
+}
+
+.compuerta-coop.abierta {
+    opacity: .12;
+    transform: translateY(-30px);
+    pointer-events: none;
+}
+
+.instrucciones-coop {
+    position: absolute;
+    z-index: 26;
+    top: 72px;
+    left: 50%;
+    width: min(720px, 88%);
+    padding: 5px 9px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(255,255,255,.9);
+    border-radius: 9px;
+    background: rgba(15,23,42,.88);
+    color: white;
+    font-size: clamp(10px, .95vw, 13px);
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    pointer-events: none;
+}
+
+.objeto.invulnerable {
+    animation: destelloInvulnerable .18s steps(2, end) infinite;
+}
+
+@keyframes destelloInvulnerable {
+    to { opacity: .28; }
+}
+
+#retoFinal[hidden] {
+    display: none;
+}
+.progreso-reto-daca{font-size:14px;font-weight:900;color:#93c5fd;margin:8px 0 4px;letter-spacing:.05em;}
+.categoria-reto-daca{font-size:15px;font-weight:800;color:#facc15;margin:4px 0 10px;}
+.ayuda-reto-daca{font-size:12px;color:#cbd5e1;margin:6px 0 10px;}
+#preguntaRetoFinal{font-size:clamp(18px,3vw,24px);line-height:1.4;overflow-wrap:anywhere;}
+@media(max-width:600px){.reto-final-contenido{max-height:calc(100dvh - 75px);overflow-y:auto;padding:14px;}}
+
+
+.reto-final {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(2,6,23,.82);
+}
+
+.reto-final-contenido {
+    width: min(480px, 94vw);
+    padding: 28px;
+    border: 3px solid #facc15;
+    border-radius: 22px;
+    background: #172554;
+    color: white;
+    text-align: center;
+    box-shadow: 0 20px 70px rgba(0,0,0,.5);
+}
+
+.reto-final-contenido input {
+    width: min(220px, 80%);
+    padding: 10px;
+    font-size: 20px;
+}
+
+/* PACMINION: monstruo opcional */
+.monstruo {
+    position: absolute;
+    font-size: 55px;
+    z-index: 17;
+    filter: drop-shadow(0 0 12px rgba(248, 113, 113, .8));
+}
+
+.monstruo::after {
+    content: attr(data-vida);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 4px);
+    padding: 3px 8px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(254, 226, 226, .9);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, .9);
+    color: #fecaca;
+    font: 800 12px/1.2 system-ui, sans-serif;
+    white-space: nowrap;
+    text-shadow: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+}
+
+.monstruo.golpeado {
+    filter: brightness(1.8) drop-shadow(0 0 18px #fef08a);
+}
+
+.peligro {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    padding: 48px 6px 6px;
+    box-sizing: border-box;
+    border: 2px solid rgba(254, 226, 226, .84);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(127, 29, 29, .16), rgba(127, 29, 29, .48)),
+        repeating-linear-gradient(135deg, rgba(248, 113, 113, .2) 0 12px,
+            rgba(69, 10, 10, .12) 12px 24px);
+    color: white;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-shadow: 0 2px 5px #111;
+    z-index: 9;
+    pointer-events: none;
+    box-shadow: inset 0 0 22px rgba(254, 202, 202, .16), 0 0 22px rgba(239, 68, 68, .3);
+    backdrop-filter: saturate(1.25);
+}
+
+.peligro::before {
+    position: absolute;
+    inset: 8px 10px;
+    border-right: 1px solid rgba(255, 255, 255, .18);
+    border-left: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 10px;
+    background: repeating-linear-gradient(135deg, transparent 0 18px,
+        rgba(255, 255, 255, .08) 18px 20px, transparent 20px 36px);
+    content: "";
+}
+
+.peligro span {
+    position: absolute;
+    z-index: 1;
+    top: clamp(18px, 14%, 58px);
+    left: 50%;
+    width: max-content;
+    max-width: calc(100% - 12px);
+    padding: 7px 12px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, .88);
+    color: white;
+    font-size: clamp(10px, .9vw, 14px);
+    line-height: 1.1;
+    text-align: center;
+    text-shadow: none;
+    box-shadow: 0 4px 12px rgba(2, 6, 23, .35);
+}
+
+.peligro[data-reto="dash"] {
+    border-color: rgba(253, 186, 116, .96);
+    background: linear-gradient(180deg, rgba(154, 52, 18, .16), rgba(124, 45, 18, .5)),
+        repeating-linear-gradient(135deg, rgba(249, 115, 22, .23) 0 12px,
+            rgba(124, 45, 18, .12) 12px 24px);
+    box-shadow: inset 0 0 24px rgba(254, 215, 170, .18), 0 0 24px rgba(249, 115, 22, .42);
+}
+
+.peligro[data-reto="parry"] {
+    border-color: rgba(165, 243, 252, .96);
+    background: linear-gradient(180deg, rgba(49, 46, 129, .16), rgba(49, 46, 129, .5)),
+        repeating-linear-gradient(135deg, rgba(124, 58, 237, .23) 0 12px,
+            rgba(49, 46, 129, .12) 12px 24px);
+    box-shadow: inset 0 0 24px rgba(224, 242, 254, .18), 0 0 24px rgba(34, 211, 238, .4);
+}
+
+.ruta-paso {
+    position: absolute;
+    z-index: 8;
+    padding: 5px 9px;
+    border: 1px solid rgba(224, 242, 254, .92);
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(30, 41, 59, .94), rgba(15, 23, 42, .82));
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, .32), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+.estado-tutorial {
+    position: absolute;
+    z-index: 25;
+    top: 8px;
+    left: 50%;
+    width: max-content;
+    max-width: 86%;
+    padding: 4px 8px;
+    transform: translateX(-50%);
+    border: 1px solid white;
+    border-radius: 9px;
+    background: rgba(15, 23, 42, .9);
+    color: white;
+    font-size: clamp(10px, .95vw, 13px);
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    pointer-events: none;
+}
+
+.pantalla#nivel1 .instrucciones-coop {
+    display: none;
+}
+
+.pantalla[id="nivel2"] .instrucciones-coop,
+.pantalla[id="nivel3"] .instrucciones-coop,
+.pantalla[id="nivel4"] .instrucciones-coop,
+.pantalla[id="nivel2"] .ruta-paso,
+.pantalla[id="nivel3"] .ruta-paso,
+.pantalla[id="nivel4"] .ruta-paso,
+.pantalla[id="nivel2"] .peligro span,
+.pantalla[id="nivel3"] .peligro span,
+.pantalla[id="nivel4"] .peligro span {
+    display: none;
+}
+
+.acciones-habilidad {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.acciones-habilidad button {
+    min-width: 120px;
+}
+
+/* PLATAFORMAS */
+.plataforma {
+    position: absolute;
+    height: 34px;
+    border: 1px solid rgba(217, 249, 157, .82);
+    border-top: 6px solid #bef264;
+    border-bottom: 12px solid #713f12;
+    border-radius: 11px 11px 4px 4px;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .08) 0 24px,
+        transparent 24px 48px), linear-gradient(180deg, #4ade80, #047857 54%, #78350f 56%);
+    z-index: 12;
+    box-shadow: 0 10px 18px rgba(2, 6, 23, .34), inset 0 0 12px rgba(236, 253, 245, .28);
+}
+
+.plataforma::before {
+    position: absolute;
+    top: -6px;
+    left: 8px;
+    right: 8px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ecfccb, #86efac 45%, #d9f99d);
+    content: "";
+    box-shadow: 0 0 10px rgba(190, 242, 100, .6);
+}
+
+.plataforma::after {
+    position: absolute;
+    right: 8%;
+    bottom: -19px;
+    left: 8%;
+    height: 8px;
+    border-radius: 0 0 8px 8px;
+    background: repeating-linear-gradient(90deg, #713f12 0 24px, #92400e 24px 29px);
+    content: "";
+    opacity: .88;
+}
+
+.puerta {
+    position: absolute;
+    font-size: 110px;
+    z-index: 13;
+}
+
+.llave {
+    position: absolute;
+    font-size: 72px;
+    z-index: 14;
+}
+
+.operacion-flotante {
+    position: absolute;
+    padding: 14px 24px;
+    background: white;
+    border: 4px solid #111;
+    border-radius: 50%;
+    font-size: 34px;
+    font-weight: bold;
+    z-index: 16;
+}
+
+/* Portería simple para el modo fútbol */
+.porteria {
+    position: absolute;
+    width: 35px;
+    height: 180px;
+    top: 210px;
+    border: 5px solid white;
+    z-index: 3;
+}
+.porteria.izquierda { left: 0; border-left: none; }
+.porteria.derecha { right: 0; border-right: none; }
+
+/* =========================================================
+PANEL DE RETO MATEMÁTICO
+========================================================= */
+.panel-reto {
+    width: min(900px, 96%);
+    margin: 12px auto;
+    padding: 14px;
+    background: rgba(255,255,255,.92);
+    border: 3px solid #111;
+    border-radius: 16px;
+}
+
+.panel-reto input {
+    width: min(320px, 90%);
+    padding: 10px;
+    border: 2px solid #111;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.mensaje {
+    min-height: 36px;
+    margin: 8px 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* =========================================================
+CONTROLES DE MOVIMIENTO 2D
+========================================================= */
+.panel-controles {
+    width: min(900px, 96%);
+    margin: 12px auto;
+    padding: 12px;
+    background: rgba(255,255,255,.88);
+    border: 3px solid #111;
+    border-radius: 16px;
+}
+
+.cruceta {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 58px);
+    grid-template-rows: repeat(3, 48px);
+    gap: 6px;
+    vertical-align: middle;
+}
+
+.cruceta button {
+    border: 2px solid #111;
+    border-radius: 10px;
+    background: white;
+    font-size: 23px;
+}
+
+.cruceta .centro {
+    cursor: default;
+    background: #ececec;
+}
+
+/* =========================================================
+AVISOS DE JUEGO
+========================================================= */
+.aviso-tiempo {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: max(72px, 12vh);
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    max-width: min(560px, 88vw);
+    padding: 10px 20px;
+    border: 2px solid white;
+    border-radius: 14px;
+    background: rgba(0,0,0,.88);
+    color: white;
+    font-size: clamp(16px, 1.5vw, 23px);
+    font-weight: 900;
+    line-height: 1.25;
+    text-align: center;
+    text-shadow: 1px 1px 2px black;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .35);
+    animation: aparecerAviso .18s ease-out;
+}
+
+@keyframes aparecerAviso {
+    from { transform: translate(-50%, -50%) scale(.92); opacity: 0; }
+    to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+
+/* =========================================================
+TARJETA INTERACTIVA CON CONFETI
+   ========================================================= */
+/* =========================================================
+CONFETI
+   ========================================================= */
+.confeti {
+    position: fixed;
+    top: -30px;
+    width: 12px;
+    height: 18px;
+    z-index: 9999;
+    pointer-events: none;
+    animation-name: caerConfeti;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes caerConfeti {
+    to {
+        transform: translateY(115vh) rotate(900deg);
+        opacity: .95;
+    }
+}
+
+/* =========================================================
+EFECTO DE EXPLOSIÓN / DESTELLO
+   ========================================================= */
+.explosion {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10001;
+    pointer-events: none;
+    font-size: 28px;
+    animation: explosionAnimada .85s ease-out forwards;
+}
+
+@keyframes explosionAnimada {
+    0%   { font-size: 25px; opacity: 1; }
+    65%  { font-size: 190px; opacity: 1; }
+    100% { font-size: 250px; opacity: 0; }
+}
+
+/* =========================================================
+BOTONES DE NAVEGACIÓN ENTRE NIVELES
+   ========================================================= */
+.navegacion {
+    margin: 16px auto 30px;
+}
+
+/* =========================================================
+RESPONSIVE
+   ========================================================= */
+@media (max-width: 850px) {
+    .hud {
+        grid-template-columns: repeat(2, 1fr);
+        font-size: 17px;
+    }
+
+    .boton-pantalla-completa {
+        display: none;
+    }
+
+    .escenario {
+        width: min(1150px, 100%, max(333px, calc((100svh - 250px) * 1.8548387)));
+    }
+
+    .imagen-izquierda,
+    .imagen-derecha {
+        width: 90px;
+    }
+}
+
+@media (min-width: 851px) {
+    .pantalla.activa[id^="nivel"] {
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+        align-content: stretch;
+        gap: clamp(4px, .7vh, 10px);
+        height: 100vh;
+        height: 100svh;
+        min-height: 0;
+        padding: 10px clamp(16px, 2vw, 36px);
+        overflow: hidden;
+    }
+
+    .pantalla.activa[id^="nivel"] .hud {
+        width: min(1500px, 100%);
+        margin: 0 auto;
+        padding: 6px 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+        font-size: clamp(15px, 1vw, 20px);
+    }
+
+    .pantalla.activa[id^="nivel"] .titulo-nivel {
+        margin: 0;
+        font-size: clamp(21px, 2vw, 34px);
+        line-height: 1.1;
+    }
+
+    .pantalla.activa[id^="nivel"] .escenario {
+        width: min(1150px, 100%, calc((100svh - 280px) * 1.8548387));
+        max-height: 100%;
+        margin: 0 auto;
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 0 8px;
+        width: min(1200px, 100%);
+        margin: 0 auto;
+        padding: 4px 12px;
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles h3 {
+        flex-basis: 100%;
+        margin: 2px 0;
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles .boton,
+    .pantalla.activa[id^="nivel"] .navegacion .boton {
+        margin: 4px;
+        padding: 8px 14px;
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles .acciones-habilidad {
+        margin: 0;
+    }
+
+    .pantalla.activa[id^="nivel"] .navegacion {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .boton-pantalla-completa {
+        display: block;
+        margin: 0;
+        padding: 7px 12px;
+        border: 0;
+        border-radius: 10px;
+        background: #0f172a;
+        color: white;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+}
+
+@media (min-width: 851px) and (max-height: 700px) {
+    .pantalla.activa[id^="nivel"] {
+        gap: 3px;
+        padding: 4px 12px;
+    }
+
+    .pantalla.activa[id^="nivel"] .hud {
+        padding: 3px 8px;
+        font-size: clamp(12px, .95vw, 16px);
+    }
+
+    .pantalla.activa[id^="nivel"] .titulo-nivel {
+        font-size: clamp(17px, 1.8vw, 23px);
+    }
+
+    .pantalla.activa[id^="nivel"] .escenario {
+        width: min(1150px, 100%, calc((100svh - 165px) * 1.8548387));
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles {
+        padding: 2px 8px;
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles h3 {
+        display: none;
+    }
+
+    .pantalla.activa[id^="nivel"] .panel-controles .boton,
+    .pantalla.activa[id^="nivel"] .navegacion .boton {
+        margin: 2px;
+        padding: 5px 10px;
+    }
+}
+</style>
+<link rel="stylesheet" href="../../assets/arcade-nav.css">
+
+<style>
+/* Integración Math Arcade – solo presentación, no altera física ni retos. */
+html{scroll-behavior:auto !important;}
+body{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;}
+.pantalla{min-height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;max-height:none !important;padding-bottom:calc(var(--arcade-nav-altura,54px) + 20px) !important;}
+#portada.activa{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;height:calc(100dvh - var(--arcade-nav-altura,54px));padding:18px 15px calc(var(--arcade-nav-altura,54px) + 28px) !important;background-position:center center;}
+#portada .titulo,#portada .subtitulo{display:none;}
+#portada .boton2{margin:0 auto !important;padding:12px 25px !important;min-height:50px;background:linear-gradient(180deg,#ffcc3f,#ff9425) !important;color:#152242 !important;border:2px solid #fff !important;box-shadow:0 5px 0 #ac5714,0 9px 20px #0008 !important;font-weight:900;font-size:clamp(17px,2.2vw,22px);border-radius:16px;}
+#bienvenida{background:linear-gradient(rgba(5,21,40,.69),rgba(5,21,40,.83)),url('media/fondo_2f6ae52b4d04.webp') center/cover no-repeat;overflow:auto;}
+#bienvenida.activa{display:grid;place-items:center;}
+.bienvenida-daca{width:min(740px,100%);background:linear-gradient(145deg,#12315e,#0b1a3f);border:3px solid #60aeff;color:white;padding:clamp(18px,3vw,36px);border-radius:26px;box-shadow:0 18px 55px #0009;text-align:left;}
+.bienvenida-daca .bienvenida-etiqueta{font-weight:900;letter-spacing:.13em;font-size:12px;color:#ffce42;}
+.bienvenida-daca h1{font-size:clamp(29px,5vw,50px);color:#ffcf38;text-shadow:3px 3px #7e4208;margin:12px 0;}
+.bienvenida-daca h2{font-size:clamp(20px,3vw,27px);color:#67e3ff;}
+.bienvenida-daca p,.bienvenida-daca li{font-size:clamp(14px,2vw,17px);line-height:1.45;margin:8px 0;}
+.bienvenida-daca ol{padding-left:23px;}
+.bienvenida-daca .nota-daca{color:#d6eaff;font-size:13px;}
+.acciones-bienvenida-daca{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+.acciones-bienvenida-daca button{padding:11px 22px;min-height:48px;font-weight:900;border-radius:14px;color:#fff;border:2px solid #fff;}
+.daca-verde{background:linear-gradient(180deg,#18b967,#097c42);box-shadow:0 5px 0 #064729;}
+.daca-azul,.navegacion button:first-child{background:linear-gradient(180deg,#3972ed,#1947b7) !important;color:#fff !important;border:2px solid #fff !important;box-shadow:0 5px 0 #0d2c74 !important;}
+#controlAudioDaca{position:fixed;top:10px;right:12px;z-index:10001;border:2px solid #fff7d7;border-radius:12px;background:#ffba31;color:#251a05;font-size:13px;font-weight:900;padding:8px 11px;box-shadow:0 4px 12px #0005;}
+@media(min-width:681px){#controlAudioDaca{top:67px !important;right:15px;}}
+#nivel1 .hud,#nivel2 .hud,#nivel3 .hud,#nivel4 .hud{border-radius:15px;background:linear-gradient(180deg,#eff8ff,#dfeeff);border:2px solid #80c0f0;color:#15284f;}
+#nivel1 .hud span,#nivel2 .hud span,#nivel3 .hud span,#nivel4 .hud span{font-weight:750;}
+.navegacion{margin:12px auto calc(var(--arcade-nav-altura,54px) + 7px) !important;padding-bottom:10px !important;display:flex !important;flex-wrap:wrap;justify-content:center;gap:9px;}
+.navegacion .boton{border:2px solid white !important;border-radius:13px !important;box-shadow:0 4px 0 #174c7f !important;}
+.navegacion .boton:last-child{background:linear-gradient(180deg,#19b665,#0b8547) !important;color:white !important;}
+.navegacion .boton:nth-child(2){background:linear-gradient(180deg,#ffc052,#ed8d21) !important;color:#27210f !important;}
+#final .boton{border:2px solid #fff !important;border-radius:14px;background:linear-gradient(180deg,#1bbd6a,#0c8647);color:#fff;box-shadow:0 5px 0 #084a29;}
+@media(max-width:680px){
+ #portada.activa{background-size:contain;background-color:#0b2f45;padding-bottom:calc(var(--arcade-nav-altura,54px) + 22px) !important;}
+ .pantalla{padding:10px 7px calc(var(--arcade-nav-altura,54px) + 22px) !important;}
+ #portada.activa{padding:10px 7px calc(var(--arcade-nav-altura,54px) + 22px) !important;}
+ .bienvenida-daca{padding:15px;border-radius:18px;}
+ .navegacion .boton{font-size:12px;padding:8px 9px;min-height:42px;}
+ #controlAudioDaca{font-size:11px;top:6px;right:5px;padding:6px 8px;}
+}
+
+/* Reconocimiento del equipo de DACA en la bienvenida */
+.bienvenida-daca .creditos-equipo-daca{
+  background:rgba(42,97,168,.33);border:1px solid #6ecfff;border-radius:12px;
+  padding:10px 13px;margin:12px 0 16px;color:#f6fcff;
+  font-weight:700;overflow-wrap:anywhere;
+}
+.bienvenida-daca .creditos-equipo-daca strong{color:#ffdd60;}
+
+</style>
+</head>
+
+<body>
+<button type="button" id="controlAudioDaca" aria-pressed="true" aria-label="Silenciar sonidos de DACA" onclick="alternarAudioDaca()">🔊 Silenciar</button>
+
+
+<!-- =========================================================
+    AVISO GENERAL
+    🟥 NO MODIFICAR
+    ========================================================= -->
+<div id="avisoTiempo" class="aviso-tiempo"></div>
+
+<!-- =========================================================
+    PORTADA DEL JUEGO
+    ========================================================= -->
+<section id="portada" class="pantalla activa">
+
+    <!-- 🟦 CAMBIA AQUÍ: nombre del juego -->
+    <h1 class="titulo"></h1>
+
+    <!-- 🟦 CAMBIA AQUÍ: descripción -->
+    <p class="subtitulo"></p>
+
+    <!-- =====================================================
+        🟩 OPCIONAL: IMAGEN PRINCIPAL
+        Quita los símbolos de comentario si la quieres usar.
+
+    <img src="logo.png" class="imagen-principal" alt="Logo del juego">
+        ===================================================== -->
+
+    <!-- =====================================================
+        🟩 OPCIONAL: IMAGEN A LA IZQUIERDA DEL TÍTULO
+
+    <img src="decoracion-izquierda.png" class="imagen-izquierda" alt="Decoración">
+        ===================================================== -->
+
+    <!-- =====================================================
+        🟩 OPCIONAL: IMAGEN A LA DERECHA DEL TÍTULO
+
+    <img src="decoracion-derecha.png" class="imagen-derecha" alt="Decoración">
+        ===================================================== -->
+
+    <!-- =====================================================
+        🟩 OPCIONAL: IMAGEN DEBAJO DEL TÍTULO
+
+    <img src="imagen-abajo.png" class="imagen-debajo-titulo" alt="Decoración">
+        ===================================================== -->
+
+    <br>
+
+    <button class="boton2 boton-principal" onclick="mostrarBienvenidaDaca()">
+        🎮 BIENVENIDA
+    </button>
+
+</section>
+
+
+<section id="bienvenida" class="pantalla" aria-labelledby="tituloBienvenidaDaca">
+ <div class="bienvenida-daca">
+   <div class="bienvenida-etiqueta">MATH ARCADE · NEZALDI</div>
+   <h1 id="tituloBienvenidaDaca">¡Bienvenidos a DACA!</h1>
+   <p>Un videojuego cooperativo de aventuras, habilidades y desafíos matemáticos.</p>
+   <p class="creditos-equipo-daca"><strong>Integrantes:</strong> Diego, Amelie, Camila y Adrian.</p>
+   <h2>🎮 ¿Cómo se juega?</h2>
+   <ol>
+     <li><b>Trabajen en equipo:</b> coordinen a los dos personajes para superar obstáculos.</li>
+     <li><b>Practiquen sus habilidades:</b> moverse, saltar, usar <b>DASH (Q)</b> y <b>PARRY (E)</b>.</li>
+     <li><b>Superen cuatro niveles:</b> colaboren para activar mecanismos y llegar a las metas.</li>
+     <li><b>Resuelvan retos del Python</b> sobre potencias, ecuaciones, fracciones, notación científica, divisibilidad, MCM y MCD. Aparecen tres preguntas por nivel y cuatro en el final. Tienen 30 segundos por pregunta; si se agota el tiempo, pierden una vida.</li>
+   </ol>
+   <p class="nota-daca">En computadora pueden utilizar el teclado. En el primer nivel también aparecen controles táctiles.</p>
+   <div class="acciones-bienvenida-daca">
+     <button class="daca-verde" type="button" onclick="irNivel(1)">▶ JUGAR</button>
+     <button class="daca-azul" type="button" onclick="irPortada()">Volver a portada</button>
+   </div>
+ </div>
+</section>
+
+<section id="nivel1" class="pantalla">
+
+    <div class="hud">
+        <span>Vidas: <span id="vidas1">3</span></span>
+        <span>Puntos: <span id="puntos1">0</span></span>
+        <span>NIVEL 1</span>
+        <span>Tiempo: <span id="tiempo1">60</span>s</span>
+        <button class="boton-pantalla-completa" onclick="alternarPantallaCompleta()" aria-label="Alternar pantalla completa">⛶ PANTALLA COMPLETA</button>
+    </div>
+
+    <!-- 🟦 CAMBIA AQUÍ -->
+    <h2 class="titulo-nivel">ENTRENAMIENTO EN EQUIPO: DASH Y PARRY</h2>
+
+    <div class="escenario" id="escenario1"
+    style="background-image: url(media/fondo_6f8da23e21fd.webp);">
+
+        <img id="personaje1"
+        src="media/avatar_d838d3387853.webp"
+        class="objeto personaje-img"
+        alt="Personaje">
+        
+        <img id="personajeB1"
+        src="media/avatar_c2b3ff014fa1.webp"
+        class="objeto personaje-img"
+        alt="personaje2">
+        <div id="flecha1" class="flecha-movimiento">→</div>
+
+        <div id="progresoTutorial1" class="estado-tutorial">
+            Sigue las marcas: DASH (Q), PARRY (E) y después salta a la meta.
+        </div>
+        <div class="ruta-paso" style="left:105px; top:375px;">1. DASH →</div>
+        <div class="peligro" data-reto="dash"
+            style="left:235px; top:250px; width:100px; height:370px;"><span>DASH</span></div>
+        <div class="ruta-paso" style="left:345px; top:375px;">2. PARRY →</div>
+        <div class="peligro" data-reto="parry"
+            style="left:405px; top:220px; width:85px; height:400px;"><span>PARRY</span></div>
+        <div class="ruta-paso" style="left:665px; top:250px;">3. SUBE POR LAS ROCAS</div>
+
+        <div class="meta"
+            style="left:1000px; top:225px;">🏁</div>
+        <div class="plataforma" style="left:535px; top:490px; width:125px;"></div>
+        <div class="plataforma" style="left:675px; top:425px; width:115px;"></div>
+        <div class="plataforma" style="left:805px; top:360px; width:105px;"></div>
+        <div class="plataforma" style="left:925px; top:295px; width:125px;"></div>
+    </div>
+    <div class="panel-controles">
+        <h3>🎮 PRÁCTICA: CAMINAR · SALTAR · DASH · PARRY</h3>
+        <button class="boton" onclick="moverObjeto('personaje1',-35,0,1,'←')">←</button>
+        <button class="boton" onclick="saltarPersonaje('personaje1')">⬆ SALTAR</button>
+        <button class="boton" onclick="moverObjeto('personaje1',35,0,1,'→')">→</button>
+        <div class="acciones-habilidad">
+            <button class="boton" onclick="activarDash(document.getElementById('personaje1'),'J1')">⚡ DASH (Q)</button>
+            <button class="boton" onclick="activarParry(document.getElementById('personaje1'),'J1')">🛡️ PARRY (E)</button>
+        </div>
+    </div>
+
+<div class="navegacion">
+        <button class="boton" onclick="irPortada()">🏠 PORTADA</button>
+        <button class="boton" onclick="reiniciarNivel(1)">🔄 REINICIAR</button>
+        <button class="boton" onclick="irNivel(2)">NIVEL 2 ➜</button>
+    </div>
+</section>
+
+<!-- =========================================================
+     NIVEL 2
+     ========================================================= -->
+<section id="nivel2" class="pantalla">
+    <div class="hud">
+        <span>❤️ Vidas: <span id="vidas2">3</span></span>
+        <span>⭐ Puntos: <span id="puntos2">0</span></span>
+        <span>🎮 NIVEL 2</span>
+        <span>⏱ Tiempo: <span id="tiempo2">60</span>s</span>
+        <button class="boton-pantalla-completa" onclick="alternarPantallaCompleta()" aria-label="Alternar pantalla completa">⛶ PANTALLA COMPLETA</button>
+    </div>
+
+    <h2 class="titulo-nivel">NIVEL 2: EL SALTO DEL PUENTE</h2>
+
+    <div class="escenario" id="escenario2" 
+    style="background-image: url(media/fondo_b0e5583e5281.webp);">
+        <div id="flecha2" class="flecha-movimiento">→</div>
+
+        <img id="personaje2"
+        src="media/avatar_d838d3387853.webp"
+        class="objeto personaje-img"
+        style="left:80px; top:300px;"
+        alt="Personaje">
+
+        <img id="personajeB2"
+            src="media/avatar_c2b3ff014fa1.webp"
+            class="objeto personaje-img"
+            style="left:80px; top:300px;"
+            alt="Personaje2">
+
+        <div class="ruta-paso" style="left:75px; top:365px;">1. SALTA ENTRE RUINAS</div>
+        <div class="peligro" style="left:300px; top:245px; width:95px; height:375px;"><span>DASH O PARRY</span></div>
+        <div class="ruta-paso" style="left:425px; top:365px;">2. CRUZA CON HABILIDAD</div>
+        <div class="peligro" style="left:790px; top:245px; width:90px; height:375px;"><span>DASH O PARRY</span></div>
+        <div class="ruta-paso" style="left:890px; top:240px;">3. ESCALERA FINAL</div>
+        <div id="enemigo2" class="monstruo" style="left:950px; top:420px;">👾</div>
+
+        <div class="meta"
+            style="left:1000px; top:285px;">🏁</div>
+
+        <div class="plataforma" style="left:65px; top:485px; width:105px;"></div>
+        <div class="plataforma" style="left:185px; top:420px; width:100px;"></div>
+        <div class="plataforma" style="left:490px; top:485px; width:100px;"></div>
+        <div class="plataforma" style="left:615px; top:420px; width:100px;"></div>
+        <div class="plataforma" style="left:885px; top:485px; width:50px;"></div>
+        <div class="plataforma" style="left:970px; top:415px; width:110px;"></div>
+
+    </div>
+<div class="navegacion">
+        <button class="boton" onclick="irNivel(1)">⬅ NIVEL 1</button>
+        <button class="boton" onclick="reiniciarNivel(2)">🔄 REINICIAR</button>
+        <button class="boton" onclick="irNivel(3)">NIVEL 3 ➜</button>
+    </div>
+</section>
+
+<section id="nivel3" class="pantalla">
+    <div class="hud">
+        <span>❤️ Vidas: <span id="vidas3">3</span></span>
+        <span>⭐ Puntos: <span id="puntos3">0</span></span>
+        <span>🎮 NIVEL 3</span>
+        <span>⏱ Tiempo: <span id="tiempo3">60</span>s</span>
+        <button class="boton-pantalla-completa" onclick="alternarPantallaCompleta()" aria-label="Alternar pantalla completa">⛶ PANTALLA COMPLETA</button>
+    </div>
+
+    <h2 class="titulo-nivel">NIVEL 3: EL LABERINTO DEL GUARDIÁN</h2>
+
+    <div class="escenario" id="escenario3" 
+    style="background-image: url(media/fondo_2925a4bc283e.webp);">
+        <div id="flecha3" class="flecha-movimiento">→</div>
+
+        <img id="personaje3"
+        src="media/avatar_d838d3387853.webp"
+        class="objeto personaje-img"
+        style="left:80px; top:300px;"
+        alt="Personaje">
+
+        <img id="personajeB3"
+            src="media/avatar_c2b3ff014fa1.webp"
+            class="objeto personaje-img"
+            style="left:80px; top:300px;"
+            alt="Personaje2">
+
+        <div id="paredSuperior3" class="pared horizontal" style="left:120px; top:70px; width:980px;"></div>
+        <div id="paredIzquierda3" class="pared vertical" style="left:120px; top:70px; height:450px;"></div>
+        <div id="piso3" class="pared horizontal" style="left:120px; top:520px; width:980px;"></div>
+        <div id="paredDerecha3" class="pared vertical" style="left:1100px; top:70px; height:450px;"></div>
+        <div id="rutaBloqueo3J1" class="pared vertical compuerta-coop" style="left:340px; top:70px; width:24px; height:450px;"></div>
+        <div id="paredRuta3Centro" class="pared vertical" style="left:600px; top:300px; height:220px;"></div>
+        <div id="rutaBloqueo3J2" class="pared vertical compuerta-coop" style="left:840px; top:70px; width:24px; height:450px;"></div>
+
+        <div class="ruta-paso" style="left:145px; top:440px;">1. SIGUE →</div>
+        <div class="peligro" style="left:230px; top:245px; width:95px; height:375px;"><span>DASH / PARRY</span></div>
+        <div class="ruta-paso" style="left:365px; top:350px;">2. SUBE ↑</div>
+        <div class="plataforma" style="left:370px; top:400px; width:160px;"></div>
+        <div class="ruta-paso" style="left:485px; top:235px;">3. CRUZA →</div>
+        <div class="plataforma" style="left:420px; top:285px; width:130px;"></div>
+        <div class="ruta-paso" style="left:675px; top:350px;">4. BAJA ↓</div>
+        <div class="ruta-paso" style="left:890px; top:440px;">5. DASH / PARRY</div>
+        <div class="plataforma" style="left:635px; top:455px; width:115px;"></div>
+        <div class="plataforma" style="left:765px; top:385px; width:105px;"></div>
+        <div class="peligro" style="left:900px; top:245px; width:80px; height:375px;"><span>DASH / PARRY</span></div>
+        <div id="enemigo3" class="monstruo" style="left:950px; top:420px;">👾</div>
+        <div class="meta" style="left:1015px; top:475px;">🏁</div>
+
+    </div>
+<div class="navegacion">
+        <button class="boton" onclick="irNivel(2)">⬅ NIVEL 2</button>
+        <button class="boton" onclick="reiniciarNivel(3)">🔄 REINICIAR</button>
+        <button class="boton" onclick="irNivel(4)">NIVEL 4 ➜</button>
+    </div>
+</section>
+
+<section id="nivel4" class="pantalla">
+    <div class="hud">
+        <span>❤️ Vidas: <span id="vidas4">3</span></span>
+        <span>⭐ Puntos: <span id="puntos4">0</span></span>
+        <span>🎮 NIVEL 4</span>
+        <span>⏱ Tiempo: <span id="tiempo4">60</span>s</span>
+        <button class="boton-pantalla-completa" onclick="alternarPantallaCompleta()" aria-label="Alternar pantalla completa">⛶ PANTALLA COMPLETA</button>
+    </div>
+
+    <h2 class="titulo-nivel">NIVEL 4: ASALTO A LA CUEVA DEL JEFE</h2>
+
+    <div class="escenario" id="escenario4"
+    style="background-image: url(media/fondo_e79cb6a35457.webp);">
+        <div id="flecha4" class="flecha-movimiento">→</div>
+
+        <img id="personaje4"
+        src="media/avatar_d838d3387853.webp"
+        class="objeto personaje-img"
+        style="left:80px; top:300px;"
+        alt="Personaje">
+
+        <img id="personajeB4"
+        src="media/avatar_c2b3ff014fa1.webp"
+        class="objeto personaje-img"
+        style="left:80px; top:300px;"
+        alt="Personaje2">
+
+        <div id="paredSuperior4" class="pared horizontal" style="left:120px; top:70px; width:980px;"></div>
+        <div id="paredIzquierda4" class="pared vertical" style="left:120px; top:70px; height:450px;"></div>
+        <div id="piso4" class="pared horizontal" style="left:120px; top:520px; width:980px;"></div>
+        <div id="paredDerecha4" class="pared vertical" style="left:1100px; top:70px; height:450px;"></div>
+        <div id="rutaBloqueo4J1" class="pared vertical compuerta-coop" style="left:340px; top:70px; width:24px; height:450px;"></div>
+        <div id="paredRuta4J1" class="pared vertical" style="left:500px; top:400px; height:220px;"></div>
+        <div id="paredRuta4J2" class="pared vertical" style="left:710px; top:400px; height:220px;"></div>
+        <div id="rutaBloqueo4J2" class="pared vertical compuerta-coop" style="left:840px; top:70px; width:24px; height:450px;"></div>
+
+        <div class="ruta-paso" style="left:135px; top:435px;">1. BRINCA EL TRAMO</div>
+        <div class="peligro" style="left:230px; top:245px; width:95px; height:375px;"><span>DASH / PARRY</span></div>
+        <div class="ruta-paso" style="left:370px; top:425px;">2. SUBE EN ZIGZAG ↑</div>
+        <div class="plataforma" style="left:350px; top:485px; width:90px;"></div>
+        <div class="plataforma" style="left:425px; top:405px; width:85px;"></div>
+        <div class="ruta-paso" style="left:380px; top:345px;">3. SALTA EL MURO →</div>
+        <div class="plataforma" style="left:520px; top:455px; width:70px;"></div>
+        <div class="plataforma" style="left:670px; top:445px; width:75px;"></div>
+        <div class="plataforma" style="left:735px; top:480px; width:65px;"></div>
+        <div class="peligro" data-reto="dash" style="left:800px; top:205px; width:70px; height:415px;"><span>DASH</span></div>
+        <div class="peligro" data-reto="parry" style="left:600px; top:205px; width:58px; height:415px;"><span>PARRY</span></div>
+        <div class="ruta-paso" style="left:890px; top:220px;">4. JEFE 👾</div>
+        <div class="ruta-paso" style="left:665px; top:345px;">5. PARRY →</div>
+        <div id="enemigo4" class="monstruo" style="left:950px; top:420px;">👾</div>
+        <div class="meta" style="left:1015px; top:475px;">🏁</div>
+
+    </div>
+<div class="navegacion">
+        <button class="boton" onclick="irNivel(3)">⬅ NIVEL 3</button>
+        <button class="boton" onclick="reiniciarNivel(4)">🔄 REINICIAR</button>
+        <button class="boton" onclick="mostrarFinal()">FINAL ➜</button>
+    </div>
+</section>
+
+<div id="retoFinal" class="reto-final" role="dialog" aria-modal="true"
+    aria-labelledby="tituloRetoFinal" hidden>
+    <div class="reto-final-contenido">
+        <h2 id="tituloRetoFinal">🧠 Reto en equipo</h2>
+        <p>Tiempo del ejercicio: <b id="tiempoRetoDaca" role="timer">30</b> s</p>
+        <p id="preguntaRetoFinal"></p>
+        <p id="progresoRetoDaca" class="progreso-reto-daca" aria-live="polite"></p>
+        <p id="categoriaRetoDaca" class="categoria-reto-daca"></p>
+        <input id="respuestaFinal" type="text" inputmode="decimal" autocomplete="off"
+        aria-label="Respuesta del reto matemático" placeholder="Número o fracción">
+        <p class="ayuda-reto-daca">También puedes responder con fracciones (por ejemplo, 3/4).</p>
+        <button class="boton" onclick="resolverRetoFinal()">✅ COMPROBAR</button>
+        <p id="mensajeRetoFinal" aria-live="polite"></p>
+    </div>
+</div>
+<section id="final" class="pantalla"
+style="background-image: url(media/fondo_85dc2b77eda2.webp);">
+    <h1 class="titulo">🏆 ¡JUEGO TERMINADO!</h1>
+    <p class="subtitulo">¡Felicidades! Completaste DACA.</p>
+    <button class="boton boton-principal" onclick="irPortada()">JUGAR DE NUEVO</button>
+</section>
+
+<script>
+const tiempoInicial = {
+    1: 60,
+    2: 60,
+    3: 60,
+    4: 60,
+    5: 60,
+    6: 60,
+    7: 60
+};
+
+const vidasIniciales = {
+    1: 3,
+    2: 3,
+    3: 3,
+    4: 3,
+    5: 3,
+    6: 3,
+    7: 3
+};
+
+let tiempos = {...tiempoInicial};
+let vidas = {...vidasIniciales};
+let puntos = {1:0,2:0,3:0,4:0,5:0,6:0,7:0};
+let cronometro = null;
+let nivelActual = 0;
+const estadoCooperacion = {};
+const DURACION_INVULNERABILIDAD = 2600;
+// Banco de 40 ejercicios del archivo daca_python.py, agrupados por sus 4 niveles.
+// En el Python, el último reto es ALEATORIO entre 10 MCM/MCD: aquí se mantiene
+// esa selección como último desafío del nivel 4. Para una expo manejable se
+// extraen 3 retos en los niveles 1-3 y 4 en el nivel final, variando cada partida.
+const bancoRetosDaca = {
+  "1": {
+    "a": [
+      {
+        "pregunta": "6²",
+        "respuesta": 36,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "4³",
+        "respuesta": 64,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "5³",
+        "respuesta": 125,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "3³",
+        "respuesta": 27,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "2⁵",
+        "respuesta": 32,
+        "tipo": "num"
+      }
+    ],
+    "b": [
+      {
+        "pregunta": "6x+5-5=18 encuentra valor de x",
+        "respuesta": 3,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "7x+6=41 encuentra valor de x",
+        "respuesta": 5,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "19-4x=4 encuentra valor de x",
+        "respuesta": 3.75,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "9x+4=80 encuentra valor de x",
+        "respuesta": 8.444444444444445,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "60-3x=30 encuentra valor de x",
+        "respuesta": 10,
+        "tipo": "num"
+      }
+    ],
+    "temaA": "Potencias",
+    "temaB": "Despeje de x"
+  },
+  "2": {
+    "a": [
+      {
+        "pregunta": "8/3 x 7/9 =",
+        "respuesta": 2.074074074074074,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "10/2 x 8/4 =",
+        "respuesta": 10.0,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "5/6 x 6/5 =",
+        "respuesta": 1.0,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "4/2 x 3/6 =",
+        "respuesta": 1.0,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "8/4 x 5/6 =",
+        "respuesta": 1.6666666666666667,
+        "tipo": "num"
+      }
+    ],
+    "b": [
+      {
+        "pregunta": "1/2 ÷ 1/4 =",
+        "respuesta": 2.0,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "3/4 ÷ 1/2 =",
+        "respuesta": 1.5,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "2/3 ÷ 4/5 =",
+        "respuesta": 0.8333333333333334,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "5/6 ÷ 2/3 =",
+        "respuesta": 1.25,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "7/8 ÷ 7/12 =",
+        "respuesta": 1.5,
+        "tipo": "num"
+      }
+    ],
+    "temaA": "Multiplicación de fracciones",
+    "temaB": "División de fracciones"
+  },
+  "3": {
+    "a": [
+      {
+        "pregunta": "7.37x10³",
+        "respuesta": 7370,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "5.91x 10²",
+        "respuesta": 591,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "6.16x 10⁵ ",
+        "respuesta": 616000,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "8.2x10⁹",
+        "respuesta": 8200000000,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "7.01x10²",
+        "respuesta": 701,
+        "tipo": "num"
+      }
+    ],
+    "b": [
+      {
+        "pregunta": "¿24 es un número divisible por 3?",
+        "respuesta": "si",
+        "tipo": "sino"
+      },
+      {
+        "pregunta": "¿225 es un número divisible por 15?",
+        "respuesta": "si",
+        "tipo": "sino"
+      },
+      {
+        "pregunta": "¿66 es un número divisible por 14?",
+        "respuesta": "no",
+        "tipo": "sino"
+      },
+      {
+        "pregunta": "¿135 es un número divisible por 3?",
+        "respuesta": "si",
+        "tipo": "sino"
+      },
+      {
+        "pregunta": "¿130 es un número divisible por 28?",
+        "respuesta": "no",
+        "tipo": "sino"
+      }
+    ],
+    "temaA": "Notación científica",
+    "temaB": "Divisibilidad"
+  },
+  "4": {
+    "a": [
+      {
+        "pregunta": "mínimo común de 30 y 44",
+        "respuesta": 660,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "mínimo común de 17 y 20",
+        "respuesta": 340,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "mínimo común de 14 y 3",
+        "respuesta": 42,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "mínimo común de 6 y 7",
+        "respuesta": 42,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "mínimo común de 8 y 20",
+        "respuesta": 40,
+        "tipo": "num"
+      }
+    ],
+    "b": [
+      {
+        "pregunta": "el maximo comun divisor de 14 y 10",
+        "respuesta": 2,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "el maximo comun divisor de 10 y 20",
+        "respuesta": 10,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "el maximo comun divisor de 35 y 60",
+        "respuesta": 5,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "el maximo comun divisor de 88 y 20",
+        "respuesta": 4,
+        "tipo": "num"
+      },
+      {
+        "pregunta": "el maximo comun divisor de 25 y 70",
+        "respuesta": 5,
+        "tipo": "num"
+      }
+    ],
+    "temaA": "Mínimo común múltiplo",
+    "temaB": "Máximo común divisor"
+  }
+};
+function elegirRetosDaca(nivel){
+  const grupo=bancoRetosDaca[nivel];
+  if(!grupo)return [];
+  const a=grupo.a.map(r=>({...r,categoria:grupo.temaA}));
+  const b=grupo.b.map(r=>({...r,categoria:grupo.temaB}));
+  const escoger=lista=>lista[Math.floor(Math.random()*lista.length)];
+  const elegidos=[escoger(a),escoger(b)];
+  const disponibles=[...a,...b].filter(x=>!elegidos.some(y=>y.pregunta===x.pregunta));
+  elegidos.push(escoger(disponibles));
+  if(nivel===4){
+    const restantes=[...a,...b].filter(x=>!elegidos.some(y=>y.pregunta===x.pregunta));
+    // El cuarto es el reto final aleatorio MCM/MCD propuesto en Python.
+    elegidos.push({...escoger(restantes),categoria:'Reto final aleatorio (MCM/MCD)'});
+  }
+  return elegidos;
+}
+// Acepta números enteros, decimales y fracciones como los acepta Python.
+function convertirRespuestaDaca(valor,tipo){
+  const texto=String(valor).trim().toLowerCase();
+  if(tipo==='sino')return texto.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const txt=texto.replace(/,/g,'.').replace(/\s+/g,'');
+  const frac=txt.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\/([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/);
+  if(frac){const d=Number(frac[2]);return d===0?NaN:Number(frac[1])/d;}
+  if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(txt))return NaN;
+  return Number(txt);
+}
+function esCorrectoDaca(entrada,reto){
+  const x=convertirRespuestaDaca(entrada,reto.tipo);
+  if(reto.tipo==='sino')return x===reto.respuesta;
+  return Number.isFinite(x)&&Math.abs(x-reto.respuesta)<=Math.max(0.005,Math.abs(reto.respuesta)*0.000000001);
+}
+
+const posicionesInicio = {
+    1: [{left:80, top:340}, {left:960, top:220}],
+    2: [{left:80, top:350}, {left:190, top:350}],
+    3: [{left:140, top:400}, {left:170, top:100}],
+    4: [{left:140, top:400}, {left:170, top:100}]
+};
+
+function actualizarTutorial(nivel, estado) {
+    const progreso = document.getElementById('progresoTutorial' + nivel);
+    if (!progreso) return;
+
+    const dash = estado.tutorialDash ? '✅ DASH' : '⬜ DASH';
+    const parry = estado.tutorialParry ? '✅ PARRY' : '⬜ PARRY';
+    progreso.textContent = estado.tutorialDash && estado.tutorialParry
+        ? '¡Listo! Activa tu palanca y coordínate para llegar a las dos metas.'
+        : 'Completa los dos pasos: ' + dash + ' · ' + parry;
+}
+
+function actualizarInstruccionesCooperativas(nivel) {
+    const texto = document.getElementById('instruccionesCoop' + nivel);
+    const estado = estadoCooperacion[nivel];
+    if (!texto || !estado) return;
+
+    const tutorial = nivel === 1
+        ? prepararFisica(document.getElementById('personaje1'))
+        : null;
+    if (tutorial && (!tutorial.tutorialDash || !tutorial.tutorialParry)) {
+        texto.textContent = 'J1: cruza la zona DASH con Q y la zona PARRY con E. J2: flechas para moverte, ↑ para saltar y / para dash.';
+    } else if (nivel === 4 && (!estado.palancas[1] || !estado.palancas[2])) {
+        texto.textContent = 'Activen las palancas. J2: prepara DASH, salto y PARRY; un PARRY perfecto al jefe recarga la habilidad.';
+    } else if (nivel === 4 && !document.getElementById('enemigo4')?.dataset.derrotado) {
+        const golpes = document.getElementById('enemigo4')?.dataset.vida;
+        texto.textContent = 'J2: DASH, salta el muro y usa PARRY. El jefe resiste ' +
+            golpes + ' golpes. ¡Un PARRY perfecto recarga la habilidad!';
+    } else if (nivel === 4 && !estado.metas[2]) {
+        texto.textContent = 'J2: usa DASH en el campo naranja, salta el muro y cruza el campo violeta con PARRY.';
+    } else if (!estado.palancas[1] || !estado.palancas[2]) {
+        texto.textContent = 'Separados por la barrera: cada jugador activa su palanca (F / Enter) o tócala cerca. Abre la compuerta del compañero.';
+    } else if (nivel >= 2 && !document.getElementById('enemigo' + nivel)?.dataset.derrotado) {
+        const golpes = document.getElementById('enemigo' + nivel)?.dataset.vida;
+        texto.textContent = '¡Palancas listas! Golpeen al guardián con DASH/PARRY (' +
+            golpes + ' golpes). Un PARRY perfecto recarga la habilidad.';
+    } else if (!estado.metas[1] || !estado.metas[2]) {
+        texto.textContent = '¡Ruta abierta! J1 y J2 deben quedarse en su propia meta al mismo tiempo.';
+    } else {
+        texto.textContent = '¡Los dos llegaron! Resuelvan juntos el reto matemático para avanzar.';
+    }
+}
+
+function escalarMapaNivel(nivel, escenario, conservarMovimiento = false) {
+    const ancho = escenario.clientWidth;
+    const alto = escenario.clientHeight;
+    const escalaX = ancho / 1150;
+    const escalaY = alto / 620;
+    const escalaUniforme = Math.min(escalaX, escalaY);
+    const elementos = escenario.querySelectorAll(
+        ':scope > .pared:not(.compuerta-coop):not(.separador-coop), ' +
+        ':scope > .peligro, :scope > .ruta-paso, :scope > .plataforma, ' +
+        ':scope > .monstruo, :scope > .meta:not(.meta-cooperativa)'
+    );
+
+    elementos.forEach(elemento => {
+        if (elemento.dataset.disenoLeft === undefined) {
+            elemento.dataset.disenoLeft = String(parseFloat(elemento.style.left) || 0);
+            elemento.dataset.disenoTop = String(parseFloat(elemento.style.top) || 0);
+            elemento.dataset.disenoWidth = String(parseFloat(elemento.style.width) || elemento.offsetWidth);
+            elemento.dataset.disenoHeight = String(parseFloat(elemento.style.height) || elemento.offsetHeight);
+            elemento.dataset.disenoFontSize = getComputedStyle(elemento).fontSize;
+        }
+
+        const left = conservarMovimiento && elemento.classList.contains('monstruo')
+            ? posicion(elemento, 'left') * ancho / (Number(escenario.dataset.layoutWidth) || ancho)
+            : Number(elemento.dataset.disenoLeft) * escalaX;
+        const top = conservarMovimiento && elemento.classList.contains('monstruo')
+            ? posicion(elemento, 'top') * alto / (Number(escenario.dataset.layoutHeight) || alto)
+            : Number(elemento.dataset.disenoTop) * escalaY;
+        elemento.style.left = left + 'px';
+        elemento.style.top = top + 'px';
+
+        if (elemento.classList.contains('ruta-paso')) {
+            elemento.style.transform = 'scale(' + escalaUniforme + ')';
+            elemento.style.transformOrigin = 'top left';
+        } else {
+            elemento.style.width = Number(elemento.dataset.disenoWidth) * escalaX + 'px';
+            elemento.style.height = Number(elemento.dataset.disenoHeight) * escalaY + 'px';
+        }
+        if (elemento.classList.contains('peligro') || elemento.classList.contains('monstruo')) {
+            elemento.style.fontSize =
+                (parseFloat(elemento.dataset.disenoFontSize) * escalaUniforme) + 'px';
+        }
+    });
+
+    if (nivel >= 3) {
+        const bordeSuperior = 70 * escalaY;
+        const piso = alto - 5 * escalaY;
+        const paredIzquierda = document.getElementById('paredIzquierda' + nivel);
+        const paredDerecha = document.getElementById('paredDerecha' + nivel);
+        const pisoElemento = document.getElementById('piso' + nivel);
+
+        paredIzquierda.style.top = bordeSuperior + 'px';
+        paredIzquierda.style.height = Math.max(0, piso - bordeSuperior) + 'px';
+        paredDerecha.style.top = bordeSuperior + 'px';
+        paredDerecha.style.height = Math.max(0, piso - bordeSuperior) + 'px';
+        pisoElemento.style.top = piso + 'px';
+
+        [1, 2].forEach(jugador => {
+            const reja = document.getElementById('rutaBloqueo' + nivel + 'J' + jugador);
+            if (!reja) return;
+            reja.style.left = ((jugador === 1 ? 340 : 840) * escalaX) + 'px';
+            reja.style.top = bordeSuperior + 'px';
+            reja.style.width = (24 * escalaX) + 'px';
+            reja.style.height = Math.max(0, piso - bordeSuperior) + 'px';
+        });
+
+        if (nivel === 4) {
+            ['paredRuta4J1', 'paredRuta4J2'].forEach(id => {
+                const pared = document.getElementById(id);
+                const top = 400 * escalaY;
+                pared.style.top = top + 'px';
+                pared.style.height = Math.max(0, piso - top) + 'px';
+            });
+        }
+
+        const paredCentral = document.getElementById('paredRuta' + nivel + 'Centro');
+        if (paredCentral) {
+            const top = (nivel === 4 ? 345 : 300) * escalaY;
+            paredCentral.style.top = top + 'px';
+            paredCentral.style.height = Math.max(0, piso - top) + 'px';
+        }
+    }
+
+    const anchoPersonaje = 95 * escalaUniforme;
+    ['personaje' + nivel, 'personajeB' + nivel].forEach(id => {
+        const personaje = document.getElementById(id);
+        if (personaje) {
+            personaje.style.width = anchoPersonaje + 'px';
+            personaje.style.height = anchoPersonaje + 'px';
+        }
+    });
+
+    escenario.dataset.layoutWidth = String(ancho);
+    escenario.dataset.layoutHeight = String(alto);
+    return {escalaX, escalaY, escalaUniforme};
+}
+
+function posicionarElementosCooperativos(nivel, escenario, escalas) {
+    const estado = estadoCooperacion[nivel];
+    const ancho = escenario.clientWidth;
+    const alto = escenario.clientHeight;
+    const {escalaX, escalaY, escalaUniforme} = escalas;
+
+    escenario.querySelectorAll('.separador-coop').forEach(elemento => {
+        elemento.classList.add('pared');
+        elemento.style.left = (ancho * .5 - 9 * escalaX) + 'px';
+        elemento.style.top = '0';
+        elemento.style.width = (18 * escalaX) + 'px';
+        elemento.style.height = alto + 'px';
+    });
+
+    const posiciones = [
+        {palanca:nivel === 1 ? .38 : nivel === 2 ? .28 : nivel === 3 ? .25 : .16,
+            compuerta:nivel === 4 ? .30 : .39, meta:.42},
+        {palanca:nivel === 1 ? .58 : nivel === 2 ? .70 : nivel === 3 ? .61 : .80,
+            compuerta:nivel === 4 ? .72 : .82,
+            meta:nivel === 4 ? .53 : nivel === 3 ? .89 : .91}
+    ];
+
+    posiciones.forEach((posicion, indice) => {
+        const jugador = indice + 1;
+        const palanca = document.getElementById('palanca' + nivel + 'J' + jugador);
+        const compuerta = document.getElementById('compuerta' + nivel + 'J' + jugador);
+        const meta = document.getElementById('meta' + nivel + 'J' + jugador);
+        let palancaX = ancho * posicion.palanca;
+        if (nivel === 3) palancaX = (jugador === 1 ? 285 : 696) * escalaX;
+        if (nivel === 1 && jugador === 2) {
+            palancaX = Math.min(ancho - 58 * escalaUniforme,
+                Math.max(ancho * .58, 500 * escalaX));
+        }
+
+        palanca.style.left = Math.max(0, Math.min(ancho - 58 * escalaUniforme, palancaX)) + 'px';
+        palanca.style.top = Math.max(0, alto - 68 * escalaUniforme - 7 * escalaY) + 'px';
+        palanca.style.width = (58 * escalaUniforme) + 'px';
+        palanca.style.height = (68 * escalaUniforme) + 'px';
+        palanca.classList.toggle('activada', estado.palancas[jugador]);
+        palanca.textContent = estado.palancas[jugador] ? '🔓' : '🕹️';
+
+        const xCompuerta = nivel >= 3
+            ? (jugador === 1 ? 340 : 840) * escalaX
+            : ancho * posicion.compuerta;
+        const yCompuerta = 70 * escalaY;
+        compuerta.style.left = xCompuerta + 'px';
+        compuerta.style.top = yCompuerta + 'px';
+        compuerta.style.width = (24 * escalaX) + 'px';
+        compuerta.style.height = Math.max(0, alto - 5 * escalaY - yCompuerta) + 'px';
+        compuerta.classList.toggle('abierta', estado.palancas[jugador === 1 ? 2 : 1]);
+
+        meta.style.left = Math.min(ancho - 82 * escalaUniforme, ancho * posicion.meta) + 'px';
+        meta.style.top = (alto - 90 * escalaY) + 'px';
+        meta.style.width = (76 * escalaUniforme) + 'px';
+        meta.style.height = (82 * escalaUniforme) + 'px';
+        meta.style.fontSize = (15 * escalaUniforme) + 'px';
+        meta.classList.toggle('ocupada', estado.metas[jugador]);
+    });
+
+    const instrucciones = document.getElementById('instruccionesCoop' + nivel);
+    if (instrucciones) instrucciones.style.top = (14 * escalaY) + 'px';
+}
+
+function prepararZonaCooperativa(nivel) {
+    if (nivel < 1 || nivel > 4) return;
+    const escenario = document.getElementById('escenario' + nivel);
+    if (!escenario) return;
+
+    if (!estadoCooperacion[nivel]) {
+        estadoCooperacion[nivel] = {
+            palancas: {1:false, 2:false},
+            metas: {1:false, 2:false},
+            completado: false,
+            retoPendiente: false,
+            retoResuelto: false
+        };
+    }
+    const estado = estadoCooperacion[nivel];
+    const ancho = escenario.clientWidth;
+    const alto = escenario.clientHeight;
+    const escalaX = ancho / 1150;
+    const escalaY = alto / 620;
+    const escalaUniforme = Math.min(escalaX, escalaY);
+    const configuracion = {
+        1: {palancas:[.38,.58], palancaY:[410*escalaY,alto-130*escalaY],
+            inicios:[80*escalaX,Math.min(ancho-95*escalaUniforme,
+                Math.max(ancho*.58,500*escalaX))],
+            inicioY:[340*escalaY,ancho < 900 ? alto-95*escalaUniforme : 225*escalaY]},
+        2: {palancas:[.28,.70], palancaY:[415*escalaY,
+                ancho < 900 ? alto-150*escalaY : 280*escalaY],
+            inicios:[80*escalaX,ancho*.78],
+            inicioY:[405*escalaY,ancho < 900 ? alto-95*escalaUniforme : 285*escalaY]},
+        3: {palancas:[.25,.61], palancaY:[470*escalaY,470*escalaY],
+            inicios:[130*escalaX,650*escalaX],
+            inicioY:[alto-100*escalaUniforme,alto-100*escalaUniforme]},
+        4: {palancas:[.16,.80], palancaY:[alto-130*escalaY,alto-130*escalaY],
+            inicios:[130*escalaX,900*escalaX],
+            inicioY:[alto-100*escalaUniforme,alto-100*escalaUniforme]}
+    }[nivel];
+
+    if (!escenario.dataset.cooperacion) {
+        escenario.querySelectorAll('.meta').forEach(meta => meta.style.display = 'none');
+
+        const separador = document.createElement('div');
+        separador.className = 'separador-coop';
+        separador.setAttribute('aria-hidden', 'true');
+        escenario.appendChild(separador);
+
+        const instrucciones = document.createElement('div');
+        instrucciones.id = 'instruccionesCoop' + nivel;
+        instrucciones.className = 'instrucciones-coop';
+        escenario.appendChild(instrucciones);
+
+        [1,2].forEach(jugador => {
+            const palanca = document.createElement('button');
+            palanca.type = 'button';
+            palanca.id = 'palanca' + nivel + 'J' + jugador;
+            palanca.className = 'palanca-coop';
+            palanca.dataset.jugador = String(jugador);
+            palanca.textContent = '🕹️';
+            palanca.setAttribute('aria-label', 'Palanca del jugador ' + jugador);
+            palanca.addEventListener('click', () => activarPalanca(nivel, jugador));
+            escenario.appendChild(palanca);
+
+            const compuerta = document.createElement('div');
+            compuerta.id = 'compuerta' + nivel + 'J' + jugador;
+            compuerta.className = 'pared compuerta-coop';
+            compuerta.setAttribute('aria-label', 'Compuerta del jugador ' + jugador);
+            escenario.appendChild(compuerta);
+
+            const meta = document.createElement('div');
+            meta.id = 'meta' + nivel + 'J' + jugador;
+            meta.className = 'meta meta-cooperativa';
+            meta.dataset.jugador = String(jugador);
+            meta.textContent = 'J' + jugador + ' META';
+            escenario.appendChild(meta);
+        });
+        escenario.dataset.cooperacion = 'lista';
+    }
+
+    const escalas = escalarMapaNivel(nivel, escenario);
+    estado.palancas = {1:false, 2:false};
+    estado.metas = {1:false, 2:false};
+    estado.completado = false;
+    estado.retoPendiente = false;
+    estado.retoResuelto = false;
+    posicionarElementosCooperativos(nivel, escenario, escalas);
+    document.getElementById('retoFinal').hidden = true;
+    actualizarInstruccionesCooperativas(nivel);
+
+    return {
+        posiciones: [
+            {left:configuracion.inicios[0], top:configuracion.inicioY[0]},
+            {left:configuracion.inicios[1], top:configuracion.inicioY[1]}
+        ]
+    };
+}
+
+function activarPalanca(nivel, jugador) {
+    const personaje = document.getElementById((jugador === 1 ? 'personaje' : 'personajeB') + nivel);
+    const palanca = document.getElementById('palanca' + nivel + 'J' + jugador);
+    const estado = estadoCooperacion[nivel];
+    if (!personaje || !palanca || !estado) return;
+
+    if (nivel === 1 && jugador === 1) {
+        const tutorial = prepararFisica(personaje);
+        if (!tutorial.tutorialDash || !tutorial.tutorialParry) {
+            mostrarAviso('Primero practica el DASH y el PARRY.', 1300);
+            return;
+        }
+    }
+
+    const distancia = Math.hypot(
+        posicion(personaje, 'left') + personaje.offsetWidth / 2 -
+            (posicion(palanca, 'left') + palanca.offsetWidth / 2),
+        posicion(personaje, 'top') + personaje.offsetHeight / 2 -
+            (posicion(palanca, 'top') + palanca.offsetHeight / 2)
+    );
+    if (distancia > 75) {
+        mostrarAviso('Acércate a tu palanca para activarla.', 1000);
+        return;
+    }
+    if (estado.palancas[jugador]) return;
+
+    estado.palancas[jugador] = true;
+    palanca.classList.add('activada');
+    palanca.textContent = '🔓';
+    document.getElementById('compuerta' + nivel + 'J' + (jugador === 1 ? 2 : 1))
+        .classList.add('abierta');
+    if (nivel === 3 || nivel === 4) {
+        document.getElementById('rutaBloqueo' + nivel + (jugador === 1 ? 'J2' : 'J1'))
+            ?.classList.add('abierta');
+    }
+    mostrarAviso('¡Palanca activada! Abriste la compuerta del compañero.', 1200);
+    actualizarInstruccionesCooperativas(nivel);
+}
+
+function actualizarMetasCooperativas(nivel) {
+    const estado = estadoCooperacion[nivel];
+    if (!estado || estado.completado || estado.retoPendiente) return;
+    [1,2].forEach(jugador => {
+        const personaje = document.getElementById((jugador === 1 ? 'personaje' : 'personajeB') + nivel);
+        const meta = document.getElementById('meta' + nivel + 'J' + jugador);
+        const fisica = personaje && prepararFisica(personaje);
+        const enMeta = !!personaje && !!meta && fisica.suelo &&
+            colisionRect(caja(personaje), caja(meta));
+        estado.metas[jugador] = enMeta;
+        if (meta) meta.classList.toggle('ocupada', enMeta);
+    });
+
+    const enemigo = nivel >= 2 ? document.getElementById('enemigo' + nivel) : null;
+    const tutorial = nivel === 1 ? prepararFisica(document.getElementById('personaje1')) : null;
+    const listo = estado.palancas[1] && estado.palancas[2] &&
+        estado.metas[1] && estado.metas[2] &&
+        (!tutorial || (tutorial.tutorialDash && tutorial.tutorialParry)) &&
+        (!enemigo || enemigo.dataset.derrotado === 'true');
+    actualizarInstruccionesCooperativas(nivel);
+    if (!listo) return;
+
+    estado.retoPendiente = true;
+    clearInterval(cronometro);
+    mostrarRetoMatematico(nivel);
+}
+
+function colocarPersonajes(nivel) {
+    const escenario = document.getElementById('escenario' + nivel);
+    if (!escenario) return;
+
+    const cooperacion = prepararZonaCooperativa(nivel);
+    const posiciones = cooperacion ? cooperacion.posiciones : (posicionesInicio[nivel] || [
+        {left:80, top:300},
+        {left:180, top:300}
+    ]);
+
+    ['personaje', 'personajeB'].forEach(function(prefijo, indice) {
+        const personaje = document.getElementById(prefijo + nivel);
+        const inicio = posiciones[indice];
+        if (!personaje || !inicio) return;
+
+        let left = Math.max(0, Math.min(
+            escenario.clientWidth - personaje.offsetWidth,
+            inicio.left
+        ));
+        let plataformaInicio = null;
+        if (nivel === 2 && indice === 1) {
+            plataformaInicio = [...escenario.querySelectorAll('.plataforma')]
+                .find(plataforma => posicion(plataforma, 'left') > escenario.clientWidth * .8 &&
+                    plataforma.offsetWidth >= personaje.offsetWidth);
+        } else if (nivel === 3 && indice === 1) {
+            plataformaInicio = [...escenario.querySelectorAll('.plataforma')]
+                .find(plataforma => posicion(plataforma, 'left') > escenario.clientWidth * .5 &&
+                    posicion(plataforma, 'left') < escenario.clientWidth * .75 &&
+                    plataforma.offsetWidth >= personaje.offsetWidth);
+        }
+        const piso = document.getElementById('piso' + nivel);
+        const alturaSuelo = piso ? posicion(piso, 'top') : escenario.clientHeight;
+        const top = plataformaInicio
+            ? posicion(plataformaInicio, 'top') - personaje.offsetHeight
+            : alturaSuelo - personaje.offsetHeight;
+        if (plataformaInicio) {
+            left = posicion(plataformaInicio, 'left') +
+                (plataformaInicio.offsetWidth - personaje.offsetWidth) / 2;
+        }
+
+        personaje.style.left = left + 'px';
+        personaje.style.top = top + 'px';
+        personaje.classList.remove('invulnerable');
+        const estado = prepararFisica(personaje, true);
+        estado.suelo = true;
+        if (nivel === 1 && indice === 0) actualizarTutorial(nivel, estado);
+    });
+    actualizarInstruccionesCooperativas(nivel);
+
+    const enemigo = document.getElementById('enemigo' + nivel);
+    if (enemigo) {
+        enemigo.style.left = (escenario.clientWidth * .87) + 'px';
+        enemigo.style.top = (escenario.clientHeight - 200 * escenario.clientHeight / 620) + 'px';
+        enemigo.style.display = '';
+        const golpes = nivel === 2 ? 2 : nivel === 3 ? 3 : 4;
+        enemigo.dataset.golpesMaximos = String(golpes);
+        enemigo.dataset.golpesRestantes = String(golpes);
+        enemigo.dataset.vida = '❤ ' + golpes + '/' + golpes;
+        enemigo.dataset.proximoGolpe = '0';
+        delete enemigo.dataset.derrotado;
+        prepararFisica(enemigo, true);
+    }
+    actualizarInstruccionesCooperativas(nivel);
+}
+
+function ajustarNivelAlViewport() {
+    if (nivelActual < 1 || nivelActual > 4) return;
+    const escenario = document.getElementById('escenario' + nivelActual);
+    if (!escenario || !escenario.closest('.pantalla.activa')) return;
+
+    const anchoAnterior = Number(escenario.dataset.layoutWidth) || escenario.clientWidth;
+    const altoAnterior = Number(escenario.dataset.layoutHeight) || escenario.clientHeight;
+    const posiciones = ['personaje' + nivelActual, 'personajeB' + nivelActual].map(id => {
+        const personaje = document.getElementById(id);
+        return personaje ? {
+            personaje,
+            left: posicion(personaje, 'left'),
+            top: posicion(personaje, 'top')
+        } : null;
+    });
+
+    const escalas = escalarMapaNivel(nivelActual, escenario, true);
+    posicionarElementosCooperativos(nivelActual, escenario, escalas);
+
+    posiciones.forEach(posicionActual => {
+        if (!posicionActual) return;
+        const {personaje, left, top} = posicionActual;
+        personaje.style.left = Math.max(0, Math.min(
+            escenario.clientWidth - personaje.offsetWidth,
+            left * escenario.clientWidth / anchoAnterior
+        )) + 'px';
+        personaje.style.top = Math.max(0, Math.min(
+            escenario.clientHeight - personaje.offsetHeight,
+            top * escenario.clientHeight / altoAnterior
+        )) + 'px';
+    });
+}
+
+window.addEventListener('resize', () => requestAnimationFrame(ajustarNivelAlViewport));
+
+async function alternarPantallaCompleta() {
+    try {
+        if (document.fullscreenElement) {
+            await document.exitFullscreen();
+        } else if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        } else {
+            mostrarAviso('Este navegador no permite activar pantalla completa.', 1800);
+        }
+    } catch (error) {
+        console.error('No se pudo cambiar el modo de pantalla completa.', error);
+        mostrarAviso('No se pudo activar pantalla completa. Prueba con F11.', 2200);
+    }
+}
+
+function actualizarInterfazPantallaCompleta() {
+    const activa = Boolean(document.fullscreenElement);
+    document.querySelectorAll('.boton-pantalla-completa').forEach(boton => {
+        boton.textContent = activa ? '⛶ SALIR DE PANTALLA COMPLETA' : '⛶ PANTALLA COMPLETA';
+        boton.setAttribute('aria-pressed', String(activa));
+    });
+    requestAnimationFrame(ajustarNivelAlViewport);
+}
+
+document.addEventListener('fullscreenchange', actualizarInterfazPantallaCompleta);
+
+function mostrarPantalla(id) {
+    actualizarAudioDaca(id);
+    document.querySelectorAll('.pantalla').forEach(function(pantalla) {
+        pantalla.classList.remove('activa');
+    });
+
+    const destino = document.getElementById(id);
+    if (destino) destino.classList.add('activa');
+
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function irNivel(numero) {
+    if (nivelActual === 1 && numero > 1) {
+        const personaje = document.getElementById('personaje1');
+        const estado = personaje && prepararFisica(personaje);
+        if (!estado || !estado.tutorialDash || !estado.tutorialParry) {
+            mostrarAviso('Completa DASH y PARRY antes de avanzar.', 1400);
+            return;
+        }
+    }
+    if (nivelActual >= 1 && nivelActual <= 4 && numero > nivelActual &&
+        !estadoCooperacion[nivelActual]?.completado) {
+        mostrarAviso('Completen el objetivo y el reto matemático para avanzar.', 1500);
+        return;
+    }
+    clearInterval(cronometro);
+    nivelActual = numero;
+    mostrarPantalla('nivel' + numero);
+    colocarPersonajes(numero);
+    iniciarCronometro(numero);
+}
+
+function irPortada() {
+    clearInterval(cronometro);
+    document.getElementById('retoFinal').hidden = true;
+    nivelActual = 0;
+    mostrarPantalla('portada');
+}
+
+function mostrarFinal() {
+    if (nivelActual !== 4 || !estadoCooperacion[4]?.retoResuelto) {
+        mostrarAviso('Completen el nivel 4 y su reto matemático para terminar.', 1500);
+        return;
+    }
+    clearInterval(cronometro);
+    mostrarPantalla('final');
+}
+
+const SEGUNDOS_POR_RETO_DACA = 30;
+let limiteRetoDaca = 0;
+function iniciarRelojRetoDaca(nivel) {
+    clearInterval(cronometro);
+    limiteRetoDaca = performance.now() + SEGUNDOS_POR_RETO_DACA * 1000;
+    document.getElementById('tiempoRetoDaca').textContent = SEGUNDOS_POR_RETO_DACA;
+    cronometro = setInterval(function() {
+        if (nivelActual !== nivel || !estadoCooperacion[nivel]?.retoPendiente) {
+            clearInterval(cronometro);
+            return;
+        }
+        const restante = Math.max(0, Math.ceil((limiteRetoDaca - performance.now()) / 1000));
+        document.getElementById('tiempoRetoDaca').textContent = restante;
+        if (restante === 0) agotarRetoDaca(nivel);
+    }, 100);
+}
+function agotarRetoDaca(nivel) {
+    clearInterval(cronometro);
+    if (nivelActual !== nivel || !estadoCooperacion[nivel]?.retoPendiente || vidas[nivel] <= 0) return;
+    vidas[nivel]--;
+    reproducirEfectoDaca('dano');
+    document.getElementById('vidas' + nivel).textContent = vidas[nivel];
+    if (vidas[nivel] === 0) {
+        document.getElementById('retoFinal').hidden = true;
+        document.getElementById('mensaje' + nivel).textContent = 'GAME OVER: se terminó el tiempo del ejercicio.';
+        mostrarAviso('GAME OVER', 1600);
+        return;
+    }
+    mostrarRetoMatematico(nivel);
+    document.getElementById('mensajeRetoFinal').textContent = 'Se acabó el tiempo. Perdieron una vida. Tienen 30 segundos para intentarlo otra vez.';
+}
+function mostrarRetoMatematico(nivel) {
+    const estado = estadoCooperacion[nivel];
+    if (!estado?.retoPendiente) return;
+    if (!estado.retosSeleccionados) {
+        estado.retosSeleccionados = elegirRetosDaca(nivel);
+        estado.indiceReto = 0;
+    }
+    const reto = estado.retosSeleccionados[estado.indiceReto];
+    if(!reto)return;
+    document.getElementById('tituloRetoFinal').textContent = '🧠 Reto matemático — Nivel ' + nivel;
+    document.getElementById('preguntaRetoFinal').textContent = 'Resuelvan juntos: ' + reto.pregunta;
+    document.getElementById('progresoRetoDaca').textContent =
+      'Pregunta ' + (estado.indiceReto + 1) + ' de ' + estado.retosSeleccionados.length;
+    document.getElementById('categoriaRetoDaca').textContent = reto.categoria;
+    const campo = document.getElementById('respuestaFinal');
+    campo.value = '';
+    campo.inputMode = reto.tipo==='sino' ? 'text' : 'decimal';
+    campo.placeholder = reto.tipo==='sino' ? 'Escribe sí o no' : 'Número o fracción';
+    document.querySelector('.ayuda-reto-daca').textContent =
+      reto.tipo==='sino' ? 'Responde únicamente sí o no.' : 'Acepta números y fracciones (ejemplo: 3/4).';
+    document.getElementById('mensajeRetoFinal').textContent = '';
+    document.getElementById('retoFinal').hidden = false;
+    iniciarRelojRetoDaca(nivel);
+    campo.focus();
+}
+
+function resolverRetoFinal() {
+    const nivel = nivelActual;
+    const estado = estadoCooperacion[nivel];
+    const campo = document.getElementById('respuestaFinal');
+    const mensaje = document.getElementById('mensajeRetoFinal');
+    const reto = estado?.retosSeleccionados?.[estado.indiceReto];
+    if (!campo || !mensaje || !estado?.retoPendiente || !reto || vidas[nivel] <= 0) return;
+    if (performance.now() >= limiteRetoDaca) { agotarRetoDaca(nivel); return; }
+    if (!esCorrectoDaca(campo.value,reto)) {
+        mensaje.textContent = 'Respuesta incorrecta. Revísenla juntos y vuelvan a intentar.';
+        campo.focus();
+        return;
+    }
+    sumarPuntos(nivel, 10);
+    estado.indiceReto += 1;
+    if (estado.indiceReto < estado.retosSeleccionados.length) {
+       mostrarRetoMatematico(nivel);
+       document.getElementById('mensajeRetoFinal').textContent = '✅ ¡Correcto! +10 puntos. Vamos al siguiente reto.';
+       return;
+    }
+    estado.retoPendiente = false;
+    estado.retoResuelto = true;
+    estado.completado = true;
+    document.getElementById('retoFinal').hidden = true;
+    clearInterval(cronometro);
+    confeti(100);
+    if (nivel === 4) {
+        mostrarFinal();
+    } else {
+        mostrarAviso('¡Retos superados! Ya pueden avanzar.', 1500);
+    }
+}
+
+function iniciarCronometro(nivel, reiniciarTiempo = true) {
+    clearInterval(cronometro);
+
+    if (reiniciarTiempo) tiempos[nivel] = tiempoInicial[nivel];
+    actualizarTiempo(nivel);
+
+    cronometro = setInterval(function() {
+        tiempos[nivel]--;
+        actualizarTiempo(nivel);
+
+        if (tiempos[nivel] === 5) {
+            mostrarAviso('5 segundos!', 950);
+        }
+
+        if (tiempos[nivel] === 3) {
+            mostrarAviso('¡3 segundos!', 850);
+        }
+
+        if (tiempos[nivel] <= 0) {
+            clearInterval(cronometro);
+            perderVida(nivel, 'Se terminó el tiempo.');
+        }
+    }, 1000);
+}
+
+function actualizarTiempo(nivel) {
+    const elemento = document.getElementById('tiempo' + nivel);
+    if (elemento) elemento.textContent = tiempos[nivel];
+}
+
+function perderVida(nivel, texto) {
+    reproducirEfectoDaca("dano");
+    if (vidas[nivel] <= 0) return;
+    vidas[nivel]--;
+
+    const contador = document.getElementById('vidas' + nivel);
+    const mensaje = document.getElementById('mensaje' + nivel);
+
+    if (contador) contador.textContent = vidas[nivel];
+
+    if (vidas[nivel] > 0) {
+        [document.getElementById('personaje' + nivel),
+        document.getElementById('personajeB' + nivel)].forEach(function(personaje) {
+            if (!personaje) return;
+            const estado = prepararFisica(personaje);
+            estado.invulnerableHasta = performance.now() + DURACION_INVULNERABILIDAD;
+            personaje.classList.add('invulnerable');
+            setTimeout(function() {
+                if (performance.now() >= estado.invulnerableHasta) {
+                    personaje.classList.remove('invulnerable');
+                }
+            }, DURACION_INVULNERABILIDAD + 50);
+        });
+        if (mensaje) mensaje.textContent = texto + ' Perdiste una vida.';
+        mostrarAviso('💔 Perdiste una vida', 1000);
+
+        setTimeout(function() {
+            iniciarCronometro(nivel, texto === 'Se terminó el tiempo.');
+        }, 1000);
+    } else {
+        if (mensaje) mensaje.textContent = '💔 GAME OVER';
+        mostrarAviso('💔 GAME OVER', 1600);
+        clearInterval(cronometro);
+    }
+}
+
+function sumarPuntos(nivel, cantidad) {
+    reproducirEfectoDaca("puntos");
+    puntos[nivel] += cantidad;
+
+    const contador = document.getElementById('puntos' + nivel);
+    if (contador) contador.textContent = puntos[nivel];
+}
+
+function reiniciarNivel(nivel) {
+    vidas[nivel] = vidasIniciales[nivel];
+    puntos[nivel] = 0;
+    tiempos[nivel] = tiempoInicial[nivel];
+
+    const vidasHTML = document.getElementById('vidas' + nivel);
+    const puntosHTML = document.getElementById('puntos' + nivel);
+    const mensajeHTML = document.getElementById('mensaje' + nivel);
+
+    if (vidasHTML) vidasHTML.textContent = vidas[nivel];
+    if (puntosHTML) puntosHTML.textContent = puntos[nivel];
+    if (mensajeHTML) mensajeHTML.textContent = '';
+    document.getElementById('mensajeRetoFinal').textContent = '';
+
+    colocarPersonajes(nivel);
+    iniciarCronometro(nivel);
+    mostrarAviso('Nivel reiniciado', 850);
+}
+
+function moverObjeto(id, cambioX, cambioY, nivel, simbolo) {
+    const objeto = document.getElementById(id);
+    if (!objeto) return;
+    if (id.startsWith('balon')) {
+        desplazarSeguro(objeto, cambioX, cambioY, nivel);
+        return;
+    }
+    const escala = nivel >= 1 && nivel <= 4 ? escalaEscenario(objeto) : {x:1,y:1};
+    const estado = prepararFisica(objeto);
+    if (cambioX) desplazarSeguro(objeto, cambioX * escala.x, 0, nivel);
+    if (cambioY < 0) saltarPersonaje(id);
+    if (cambioY > 0) bajarPersonaje(objeto, estado);
+    revisarElementosPacminion(objeto, nivel);
+    mostrarFlecha(objeto, nivel, simbolo);
+}
+
+function mostrarFlecha(objeto, nivel, simbolo) {
+    const flecha = document.getElementById('flecha' + nivel);
+    if (!flecha || !objeto) return;
+
+    flecha.textContent = simbolo;
+    flecha.style.left = (objeto.offsetLeft + objeto.offsetWidth + 8) + 'px';
+    flecha.style.top = Math.max(0, objeto.offsetTop - 10) + 'px';
+    flecha.style.display = 'block';
+
+    setTimeout(function() {
+        flecha.style.display = 'none';
+    }, 650);
+}
+
+function paseBalon(id, cambioX, cambioY, nivel, simbolo) {
+    moverObjeto(id, cambioX, cambioY, nivel, simbolo);
+
+    setTimeout(function() {
+        mezclarJugadores(nivel);
+    }, 350);
+}
+
+/* =========================================================
+   ⚽ MOVER JUGADORES ALEATORIAMENTE
+   ========================================================= */
+function mezclarJugadores(nivel) {
+    const escenario = document.getElementById('escenario' + nivel);
+    if (!escenario) return;
+
+    const jugadores = escenario.querySelectorAll('.jugador-futbol');
+
+    jugadores.forEach(function(jugador) {
+        const margen = 20;
+        const maxX = escenario.clientWidth - jugador.offsetWidth - margen;
+        const maxY = escenario.clientHeight - jugador.offsetHeight - margen;
+
+        const nuevaX = margen + Math.random() * Math.max(10, maxX - margen);
+        const nuevaY = margen + Math.random() * Math.max(10, maxY - margen);
+
+        jugador.style.left = nuevaX + 'px';
+        jugador.style.top = nuevaY + 'px';
+    });
+}
+
+function revisarRespuesta(idInput, respuestaCorrecta, nivel) {
+    const input = document.getElementById(idInput);
+    const mensaje = document.getElementById('mensaje' + nivel);
+
+    if (!input) return;
+
+    const respuesta = Number(input.value);
+
+    if (input.value.trim() === '') {
+        if (mensaje) mensaje.textContent = 'Escribe una respuesta.';
+        return;
+    }
+
+    if (respuesta === Number(respuestaCorrecta)) {
+        if (mensaje) mensaje.textContent = '✅ ¡CORRECTO! +10 puntos';
+        sumarPuntos(nivel, 10);
+        confeti(110);
+        explosion('✨');
+        mostrarAviso('✅ ¡CORRECTO!', 950);
+    } else {
+        if (mensaje) mensaje.textContent = '❌ Incorrecto. Inténtalo otra vez.';
+        perderVida(nivel, '❌ Respuesta incorrecta.');
+    }
+}
+
+/* =========================================================
+   CONFETI
+   ========================================================= */
+function confeti(cantidad = 100) {
+    for (let i = 0; i < cantidad; i++) {
+        const pedazo = document.createElement('div');
+        pedazo.className = 'confeti';
+
+        pedazo.style.left = Math.random() * 100 + 'vw';
+        pedazo.style.backgroundColor =
+            'hsl(' + (Math.random() * 360) + ', 85%, 55%)';
+        pedazo.style.animationDuration =
+            (1.8 + Math.random() * 2.2) + 's';
+        pedazo.style.transform =
+            'rotate(' + (Math.random() * 360) + 'deg)';
+
+        document.body.appendChild(pedazo);
+
+        setTimeout(function() {
+            pedazo.remove();
+        }, 4300);
+    }
+}
+
+/* =========================================================
+   EXPLOSIÓN / DESTELLO
+   ========================================================= */
+function explosion(simbolo = '💥') {
+    const efecto = document.createElement('div');
+    efecto.className = 'explosion';
+    efecto.textContent = simbolo;
+    document.body.appendChild(efecto);
+
+    setTimeout(function() {
+        efecto.remove();
+    }, 900);
+}
+
+/* =========================================================
+   AVISO GRANDE
+   ========================================================= */
+let temporizadorAviso = null;
+
+function mostrarAviso(texto, duracion = 1000) {
+    const aviso = document.getElementById('avisoTiempo');
+    if (!aviso) return;
+
+    clearTimeout(temporizadorAviso);
+    aviso.textContent = texto;
+    aviso.style.display = 'block';
+
+    temporizadorAviso = setTimeout(function() {
+        aviso.style.display = 'none';
+    }, duracion);
+}
+
+let objetoArrastrado = null;
+let diferenciaX = 0;
+let diferenciaY = 0;
+
+function obtenerCoordenadas(event) {
+    return {
+        x: event.clientX,
+        y: event.clientY
+    };
+}
+
+document.addEventListener('pointerdown', function(event) {
+    const elemento = event.target.closest('.arrastrable');
+    if (!elemento) return;
+
+    objetoArrastrado = elemento;
+    const coords = obtenerCoordenadas(event);
+    const rect = elemento.getBoundingClientRect();
+
+    diferenciaX = coords.x - rect.left;
+    diferenciaY = coords.y - rect.top;
+
+    try {
+        elemento.setPointerCapture(event.pointerId);
+    } catch (e) {}
+});
+
+document.addEventListener('pointermove', function(event) {
+    if (!objetoArrastrado) return;
+
+    const escenario = objetoArrastrado.closest('.escenario');
+    if (!escenario) return;
+
+    const coords = obtenerCoordenadas(event);
+    const rect = escenario.getBoundingClientRect();
+
+    let x = coords.x - rect.left - diferenciaX;
+    let y = coords.y - rect.top - diferenciaY;
+
+    x = Math.max(0, Math.min(x, escenario.clientWidth - objetoArrastrado.offsetWidth));
+    y = Math.max(0, Math.min(y, escenario.clientHeight - objetoArrastrado.offsetHeight));
+
+    objetoArrastrado.style.left = x + 'px';
+    objetoArrastrado.style.top = y + 'px';
+    if (nivelActual > 0 && (objetoArrastrado.id === 'personaje' + nivelActual ||
+        objetoArrastrado.id === 'personajeB' + nivelActual)) {
+        revisarPeligros(objetoArrastrado, nivelActual, prepararFisica(objetoArrastrado));
+    }
+});
+
+document.addEventListener('pointerup', function() {
+    objetoArrastrado = null;
+});
+
+function revisarTarjeta(idInput, respuestaCorrecta, nivel, boton) {
+    const input = document.getElementById(idInput);
+    if (!input) return;
+
+    if (Number(input.value) === Number(respuestaCorrecta)) {
+        sumarPuntos(nivel, 10);
+        mostrarAviso('✅ ¡CORRECTO!', 1000);
+        confeti(120);
+        explosion('✨');
+        if (boton) boton.disabled = true;
+    } else {
+        mostrarAviso('❌ Inténtalo de nuevo', 1000);
+    }
+}
+
+
+const GRAVEDAD = 9.81;
+const PIXELES_POR_METRO = 70;
+const VELOCIDAD_CAMINAR = 195; // píxeles de diseño por segundo
+const VELOCIDAD_DASH = 720;
+const VELOCIDAD_SALTO = 440;   // mayor número = salto más alto
+const estadosFisica = new WeakMap();
+const teclas = new Set();
+function colisionRect(a,b) {
+    return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+function posicion(el, eje) {
+    const valor=parseFloat(el.style[eje]);
+    return Number.isFinite(valor)?valor:(eje==='left'?el.offsetLeft:el.offsetTop);
+}
+function caja(el, x=posicion(el,'left'), y=posicion(el,'top')) {
+    return {left:x, top:y, right:x+el.offsetWidth, bottom:y+el.offsetHeight};
+}
+function escalaEscenario(el) {
+    const escenario=el.closest('.escenario');
+    return escenario ? {
+        x:escenario.clientWidth/1150,
+        y:escenario.clientHeight/620
+    } : {x:1,y:1};
+}
+function prepararFisica(el, reiniciar=false) {
+    if (!el) return null;
+    if (reiniciar || !estadosFisica.has(el)) {
+        estadosFisica.set(el, {vy:0, suelo:false, ignorarHasta:0, portal:null,
+            preguntarDespues:0, invulnerableHasta:0, meta:null, enDash:false,
+            dashDisponibleDesde:0,
+            enParry:false, parryActivo:false, parryCooldownTimeout:null,
+            parryVentanaTimeout:null,
+            tutorialDash:false, tutorialParry:false,
+            peligroSuperado:null});
+    }
+    el.style.transition='none';
+    return estadosFisica.get(el);
+}
+function obstaculos(el) {
+    return [...el.closest('.escenario').querySelectorAll(
+        '.pared:not(.abierta), .barrera:not(.abierta)'
+    )];
+}
+function protegidoPorPeligro(peligro, estado) {
+    return peligro.dataset.reto === 'dash'
+        ? estado.enDash
+        : peligro.dataset.reto === 'parry'
+            ? estado.parryActivo
+            : estado.enDash || estado.parryActivo;
+}
+function desplazarSeguro(el, dx, dy, nivel, sensores=true) {
+    const escenario=el.closest('.escenario');
+    const estado=prepararFisica(el);
+    const pasos=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/2));
+    let bloqueado=false;
+    for(let i=0;i<pasos;i++) {
+        for(const [eje,delta] of [['x',dx/pasos],['y',dy/pasos]]) {
+            if (!delta) continue;
+            const x=posicion(el,'left'), y=posicion(el,'top');
+            let nx=Math.max(0,Math.min(escenario.clientWidth-el.offsetWidth, x+(eje==='x'?delta:0)));
+            let ny=Math.max(0,Math.min(escenario.clientHeight-el.offsetHeight,y+(eje==='y'?delta:0)));
+            const c=caja(el,nx,ny);
+            let choque=obstaculos(el).find(o=>colisionRect(c,caja(o)));
+            if (!choque && !el.classList.contains('monstruo')) {
+                choque=[...escenario.querySelectorAll('.peligro')].find(peligro =>
+                    estado.peligroSuperado !== peligro &&
+                    !protegidoPorPeligro(peligro, estado) &&
+                    colisionRect(c,caja(peligro))
+                );
+                if (choque && performance.now() >= estado.invulnerableHasta) {
+                    perderVida(nivel, 'Usa DASH o PARRY para cruzar.');
+                }
+            }
+            if(eje==='y' && delta>0 && performance.now()>=estado.ignorarHasta) {
+                choque=choque || [...escenario.querySelectorAll('.plataforma')].find(p=>{
+                    const r=caja(p);
+                    return x+el.offsetWidth>r.left && x<r.right &&
+                        y+el.offsetHeight<=r.top+1 && ny+el.offsetHeight>=r.top;
+                });
+            }
+            if(choque) {
+                const r=caja(choque);
+                if(eje==='x') nx=delta>0?r.left-el.offsetWidth:r.right;
+                else {
+                    ny=delta>0?r.top-el.offsetHeight:r.bottom;
+                    estado.vy=0;
+                    if(delta>0) estado.suelo=true;
+                }
+                if(choque.classList.contains('barrera')) revisarBarrera(choque,el,nivel);
+                bloqueado=true;
+            }
+            el.style.left=Math.max(0,Math.min(escenario.clientWidth-el.offsetWidth,nx))+'px';
+            el.style.top=Math.max(0,Math.min(escenario.clientHeight-el.offsetHeight,ny))+'px';
+            if(eje==='y' && delta>0 && posicion(el,'top')+el.offsetHeight>=escenario.clientHeight) {
+                estado.vy=0; estado.suelo=true;
+            }
+            if(eje==='y' && delta<0 && posicion(el,'top')===0) estado.vy=0;
+        }
+        if(sensores && revisarElementosPacminion(el,nivel)) break;
+    }
+    return bloqueado;
+}
+function saltarPersonaje(id) {
+    const el=document.getElementById(id);
+    if(!el) return;
+    const e=prepararFisica(el);
+    if(e.suelo) {e.vy=-VELOCIDAD_SALTO*escalaEscenario(el).y;e.suelo=false;}
+}
+function bajarPersonaje(el,e) {
+    const escenario=el.closest('.escenario');
+    const c=caja(el);
+    const plataforma=[...escenario.querySelectorAll('.plataforma')].find(p=>{
+        const r=caja(p);
+        return c.right>r.left && c.left<r.right &&
+            c.bottom>=r.top-18 && c.bottom<=r.top+12;
+    });
+    if(plataforma) {
+        e.ignorarHasta=Math.max(e.ignorarHasta,performance.now()+450);
+        e.suelo=false;
+        e.vy=Math.max(180,e.vy);
+    } else if(!e.suelo) e.vy=Math.max(220,e.vy);
+}
+function revisarBarrera(barrera,el,nivel) {
+    const e=prepararFisica(el);
+    if(performance.now()<e.preguntarDespues) return;
+    e.preguntarDespues=Infinity;
+    const respuesta=prompt(barrera.dataset.pregunta || '¿Cuánto es 2 + 2?');
+    e.preguntarDespues=performance.now()+1200;
+    if(respuesta!==null && respuesta.trim()!=='' && Number(respuesta)===Number(barrera.dataset.respuesta || 4)) {
+        barrera.classList.add('abierta'); sumarPuntos(nivel,10);
+    }
+}
+/* Busca un sitio libre alrededor de la salida, nunca dentro de una pared. */
+function salidaPortal(el,portal) {
+    const escenario=el.closest('.escenario');
+    const r=caja(portal), w=el.offsetWidth, h=el.offsetHeight;
+    const solidos=[...obstaculos(el),...escenario.querySelectorAll('.plataforma')];
+    const valido=(x,y)=>x>=0 && y>=0 && x+w<=escenario.clientWidth && y+h<=escenario.clientHeight &&
+        !colisionRect(caja(el,x,y),r) && !solidos.some(o=>colisionRect(caja(el,x,y),caja(o)));
+    const cx=(r.left+r.right-w)/2, cy=(r.top+r.bottom-h)/2;
+    for(let d=4;d<=160;d+=8) {
+        const sitios=[[cx,r.top-h-d],[r.right+d,cy],[r.left-w-d,cy],[cx,r.bottom+d]];
+        for(const [x,y] of sitios) if(valido(x,y)) return {x,y};
+    }
+    return null;
+}
+function revisarPeligros(el, nivel, estado) {
+    if (el.classList.contains('monstruo')) return;
+    const escenario=el.closest('.escenario');
+    const peligro=[...escenario.querySelectorAll('.peligro')].find(o=>colisionRect(caja(el),caja(o)));
+    if (!peligro) {
+        estado.peligroSuperado = null;
+        return;
+    }
+
+    const reto=peligro.dataset.reto;
+    if (reto && estado.peligroSuperado === peligro) return;
+    const protegido = protegidoPorPeligro(peligro, estado);
+    if (protegido) {
+        estado.peligroSuperado = peligro;
+        if (!reto) {
+            estado.invulnerableHasta=Math.max(estado.invulnerableHasta, performance.now()+900);
+        }
+        if (nivel===1 && el.id==='personaje1' && (reto==='dash' || reto==='parry')) {
+            const propiedad=reto==='dash' ? 'tutorialDash' : 'tutorialParry';
+            if (!estado[propiedad] && (reto==='dash' ? estado.enDash : estado.parryActivo)) {
+                estado[propiedad]=true;
+                actualizarTutorial(nivel, estado);
+                mostrarAviso(reto==='dash' ? '⚡ ¡DASH aprendido!' : '🛡️ ¡PARRY aprendido!', 1000);
+            }
+        }
+        return;
+    }
+
+    const ahora=performance.now();
+    if (ahora < estado.invulnerableHasta) return;
+    estado.invulnerableHasta=ahora+1200;
+    perderVida(nivel, 'Tocaste un obstáculo.');
+}
+function revisarElementosPacminion(el,nivel) {
+    const escenario=el.closest('.escenario'), e=prepararFisica(el);
+    revisarPeligros(el,nivel,e);
+    const portales=[...escenario.querySelectorAll('.teleport')];
+    if(e.portal && performance.now()>=(e.teleportHasta || 0) && !colisionRect(caja(el),caja(e.portal))) e.portal=null;
+    if(!e.portal) for(const entrada of portales) {
+        if(!colisionRect(caja(el),caja(entrada))) continue;
+        const destino=portales.find(p=>p!==entrada && p.dataset.grupo===entrada.dataset.grupo);
+        if(!destino) continue;
+        const salida=salidaPortal(el,destino);
+        if(!salida) {mostrarAviso('La salida del portal necesita espacio libre.',1000);return false;}
+        el.style.left=salida.x+'px';el.style.top=salida.y+'px';
+        e.vy=0;e.suelo=false;
+        // Se bloquea hasta alejarse de la salida, además del tiempo mínimo.
+        e.portal=destino; e.teleportHasta=performance.now()+500;
+        return true;
+    }
+    actualizarMetasCooperativas(nivel);
+    return false;
+}
+function escribiendo(event) { return event.target.matches('input,textarea,select,[contenteditable="true"]'); }
+
+document.addEventListener('keydown', event => {
+    if (escribiendo(event) || nivelActual < 1 || nivelActual > 7) return;
+    const dashJugador2 = event.code === 'Slash' || event.code === 'NumpadDivide' || event.key === '/';
+    
+    if (![
+        'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 
+        'KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyQ', 'KeyE', 'KeyF', 
+        'Enter', 'ShiftRight', 'Slash', 'NumpadDivide'
+    ].includes(event.code) && !dashJugador2) return;
+    
+    event.preventDefault();
+    teclas.add(event.code);
+    
+    if (!event.repeat) {
+        const el1 = document.getElementById('personaje' + nivelActual);
+        const el2 = document.getElementById('personajeB' + nivelActual);
+
+        if (el1) {
+            if (['Space', 'KeyW'].includes(event.code)) {
+                saltarPersonaje(el1.id);
+            }
+            if (event.code === 'KeyQ') {
+                activarDash(el1, 'J1');
+            }
+            if (event.code === 'KeyE') {
+                activarParry(el1, 'J1');
+            }
+            if (event.code === 'KeyF') {
+                intentarEmpujon(el1, el2, 'J1');
+                activarPalanca(nivelActual, 1);
+            }
+        }
+
+        if (el2) {
+            if (event.code === 'ArrowUp') {
+                saltarPersonaje(el2.id);
+            }
+            if (event.code === 'ShiftRight') {
+                activarParry(el2, 'J2');
+            }
+            if (event.code === 'Enter') {
+                intentarEmpujon(el2, el1, 'J2');
+                activarPalanca(nivelActual, 2);
+            }
+            if (dashJugador2) {
+                activarDash(el2, 'J2');
+            }
+        }
+    }
+});
+
+
+document.addEventListener('keyup', event => teclas.delete(event.code));
+window.addEventListener('blur', () => teclas.clear());
+document.addEventListener('visibilitychange', () => teclas.clear());
+
+
+cuadroAnterior = 0; 
+acumulado = 0;
+
+function cuadroFisica(ahora) {
+    const dt = cuadroAnterior ? Math.min((ahora - cuadroAnterior) / 1000, 0.05) : 0;
+    cuadroAnterior = ahora;
+    acumulado += dt;
+    
+    while(acumulado >= 1/120) {
+        pasoFisica(1/120);
+        acumulado -= 1/120;
+    }
+    requestAnimationFrame(cuadroFisica);
+}
+
+
+function pasoFisica(dt) {
+    if (typeof nivelActual === 'undefined' || nivelActual < 1 || nivelActual > 7) return;
+    if (typeof vidas !== 'undefined' && vidas[nivelActual] <= 0) return;
+
+    // ==========================================
+    // JUGADOR 1 (WASD)
+    // ==========================================
+    const el1 = document.getElementById('personaje' + nivelActual);
+    if (el1 && el1.closest('.pantalla.activa')) {
+        const e1 = prepararFisica(el1);
+        const der1 = teclas.has('KeyD');
+        const izq1 = teclas.has('KeyA');
+        const escalaJ1 = escalaEscenario(el1);
+        if (der1 !== izq1) desplazarSeguro(el1,
+            (der1 ? 1 : -1) * VELOCIDAD_CAMINAR * escalaJ1.x * dt, 0, nivelActual);
+        if (teclas.has('KeyS')) bajarPersonaje(el1, e1);
+        
+        e1.suelo = false;
+        e1.vy += GRAVEDAD * PIXELES_POR_METRO * escalaJ1.y * dt;
+        desplazarSeguro(el1, 0, e1.vy * dt, nivelActual);
+
+        actualizarAnimacionJ1(el1, e1, der1, izq1);
+    }
+
+    // ==========================================
+    // JUGADOR 2 (FLECHAS) - ¡CORREGIDO!
+    // ==========================================
+    const el2 = document.getElementById('personajeB' + nivelActual);
+    if (el2 && el2.closest('.pantalla.activa')) {
+        const e2 = prepararFisica(el2);
+        const der2 = teclas.has('ArrowRight');
+        const izq2 = teclas.has('ArrowLeft');
+        // Aquí estaba el error (usaba el1 en vez de el2)
+        const escalaJ2 = escalaEscenario(el2);
+        if (der2 !== izq2) desplazarSeguro(el2,
+            (der2 ? 1 : -1) * VELOCIDAD_CAMINAR * escalaJ2.x * dt, 0, nivelActual);
+        if (teclas.has('ArrowDown')) bajarPersonaje(el2, e2);
+        
+        e2.suelo = false;
+        e2.vy += GRAVEDAD * PIXELES_POR_METRO * escalaJ2.y * dt;
+        desplazarSeguro(el2, 0, e2.vy * dt, nivelActual);
+
+        actualizarAnimacionJ2(el2, e2, der2, izq2);
+    }
+
+    const enemigo = document.getElementById('enemigo' + nivelActual);
+    const cooperacion = estadoCooperacion[nivelActual];
+    const guardianActivo = nivelActual < 2 || !cooperacion ||
+        (cooperacion.palancas[1] && cooperacion.palancas[2]);
+    if (enemigo && guardianActivo && !enemigo.dataset.derrotado && enemigo.closest('.pantalla.activa')) {
+        
+        let objetivo = null;
+        let distMinima = Infinity;
+        const xE = posicion(enemigo, 'left');
+        const yE = posicion(enemigo, 'top');
+
+        [el1, el2].forEach(p => {
+            if (!p || !p.closest('.pantalla.activa')) return;
+            const dist = Math.hypot(posicion(p, 'left') - xE, posicion(p, 'top') - yE);
+            if (dist < distMinima) {
+                distMinima = dist;
+                objetivo = p;
+            }
+        });
+
+        if (objetivo) {
+            const estadoEnemigo = prepararFisica(enemigo);
+            const xO = posicion(objetivo, 'left');
+            
+            let dx = 0;
+            const escalaEnemigo = escalaEscenario(enemigo);
+            const multiplicadorEnemigo = nivelActual === 4 ? 0.92
+                : nivelActual === 3 ? 0.80 : 0.68;
+            const VELOCIDAD_ENEMIGO = VELOCIDAD_CAMINAR * escalaEnemigo.x *
+                multiplicadorEnemigo;
+            if (xO > xE + 6) dx = VELOCIDAD_ENEMIGO * dt;
+            else if (xO < xE - 6) dx = -VELOCIDAD_ENEMIGO * dt;
+
+            if (!estadoEnemigo.suelo) {
+                estadoEnemigo.vy += GRAVEDAD * PIXELES_POR_METRO * escalaEnemigo.y * dt;
+            } else {
+                estadoEnemigo.vy = 0;
+            }
+            let dy = estadoEnemigo.vy * dt;
+
+            estadoEnemigo.suelo = false;
+
+            if (dx !== 0) {
+                const chocoPared = desplazarSeguro(enemigo, dx, 0, nivelActual, false);
+                if (chocoPared && (estadoEnemigo.suelo || estadoEnemigo.vy === 0)) {
+                    estadoEnemigo.vy = -VELOCIDAD_SALTO * escalaEnemigo.y * 0.85;
+                    estadoEnemigo.suelo = false;
+                }
+            }
+            
+            desplazarSeguro(enemigo, 0, dy, nivelActual, false);
+
+            revisarElementosPacminion(enemigo, nivelActual);
+
+            const contactosGuardian = [el1, el2].filter(personaje =>
+                personaje &&
+                personaje.closest('.pantalla.activa') &&
+                colisionRect(caja(enemigo), caja(personaje))
+            );
+            const objetivoContacto = contactosGuardian.find(personaje =>
+                prepararFisica(personaje).parryActivo
+            ) || contactosGuardian.find(personaje =>
+                prepararFisica(personaje).enDash
+            ) || contactosGuardian[0];
+
+            if (objetivoContacto) {
+                const estadoObjetivo = prepararFisica(objetivoContacto);
+                const ahora = performance.now();
+                if (estadoObjetivo.parryActivo || estadoObjetivo.enDash) {
+                    const parryPerfecto = estadoObjetivo.parryActivo;
+                    if (parryPerfecto || ahora >= Number(enemigo.dataset.proximoGolpe || 0)) {
+                        const golpesRestantes = Math.max(
+                            0,
+                            Number(enemigo.dataset.golpesRestantes || 1) - 1
+                        );
+                        enemigo.dataset.golpesRestantes = String(golpesRestantes);
+                        enemigo.dataset.vida = golpesRestantes > 0
+                            ? '❤ ' + golpesRestantes + '/' + enemigo.dataset.golpesMaximos
+                            : 'KO';
+                        estadoObjetivo.parryActivo = false;
+                        if (parryPerfecto) {
+                            clearTimeout(estadoObjetivo.parryVentanaTimeout);
+                            estadoObjetivo.parryVentanaTimeout = null;
+                            clearTimeout(estadoObjetivo.parryCooldownTimeout);
+                            estadoObjetivo.parryCooldownTimeout = null;
+                            estadoObjetivo.enParry = false;
+                            objetivoContacto.style.filter = 'none';
+                        }
+                        enemigo.classList.add('golpeado');
+                        setTimeout(() => enemigo.classList.remove('golpeado'), 260);
+
+                        if (golpesRestantes === 0) {
+                            enemigo.dataset.derrotado = 'true';
+                            enemigo.style.display = 'none';
+                            objetivo.style.filter = 'none';
+                            sumarPuntos(nivelActual, 50);
+                            mostrarAviso(
+                                parryPerfecto
+                                    ? '¡PARRY PERFECTO! Guardián derrotado · +50 · Parry recargado'
+                                    : '¡Guardián derrotado! +50 puntos',
+                                1200
+                            );
+                        } else {
+                            enemigo.dataset.proximoGolpe = String(ahora + 1100);
+                            const direccion = xE >= posicion(objetivoContacto, 'left') ? 1 : -1;
+                            desplazarSeguro(enemigo,
+                                direccion * 125 * escalaEnemigo.x, 0, nivelActual, false);
+                            estadoEnemigo.vy = 0;
+                            sumarPuntos(nivelActual, 10);
+                            mostrarAviso(
+                                (parryPerfecto ? '¡PARRY PERFECTO! Recarga lista · ' : '¡Buen golpe! ') +
+                                    '+10 puntos · Quedan ' + golpesRestantes + ' golpes',
+                                1000
+                            );
+                        }
+                        actualizarInstruccionesCooperativas(nivelActual);
+                    }
+                } else if (ahora >= estadoObjetivo.invulnerableHasta) {
+                    estadoObjetivo.invulnerableHasta = ahora + 1500;
+                    perderVida(nivelActual, 'TE ATACARON!');
+                    desplazarSeguro(enemigo,
+                        (posicion(objetivoContacto, 'left') > xE ? -180 : 180) *
+                            escalaEnemigo.x, 0, nivelActual, false);
+                    estadoEnemigo.vy = 0;
+            }
+        }
+    }
+}
+}
+function activarDash(el, jugador) {
+    const e = prepararFisica(el);
+    if (e.enDash || performance.now() < e.dashDisponibleDesde) return;
+
+    e.enDash = true;
+    e.dashDisponibleDesde = performance.now() + 850;
+    
+    let vaAIzquierda = false;
+    if (jugador === 'J1') {
+        vaAIzquierda = teclas.has('KeyA');
+    } else if (jugador === 'J2') {
+        vaAIzquierda = teclas.has('ArrowLeft');
+    }
+    
+    e.direccionDash = vaAIzquierda ? -1 : 1;
+    
+    const duracionDash = 0.28;
+
+    let bucleDash = setInterval(() => {
+        desplazarSeguro(el, e.direccionDash * VELOCIDAD_DASH *
+            escalaEscenario(el).x * 0.01, 0, nivelActual);
+        e.vy = 0;
+    }, 10);
+
+    setTimeout(() => {
+        clearInterval(bucleDash);
+        
+        e.direccionDash = null;
+        e.enDash = false;
+    }, duracionDash * 1000);
+}
+function activarParry(el, jugador) {
+    const e = prepararFisica(el);
+    if (e.enParry) return; 
+
+    clearTimeout(e.parryVentanaTimeout);
+    clearTimeout(e.parryCooldownTimeout);
+    e.enParry = true;
+    e.parryActivo = true; 
+
+    el.style.filter = "drop-shadow(0px 0px 8px #00ffff)"; 
+
+    e.parryVentanaTimeout = setTimeout(() => {
+        e.parryActivo = false;
+        e.parryVentanaTimeout = null;
+        el.style.filter = "none"; 
+    }, 400);
+
+    e.parryCooldownTimeout = setTimeout(() => {
+        e.enParry = false;
+        e.parryCooldownTimeout = null;
+    }, 1500);
+}
+function intentarEmpujon(emisor, receptor, jugadorEmisor) {
+    if (!emisor || !receptor) return;
+
+    const r1 = emisor.getBoundingClientRect();
+    const r2 = receptor.getBoundingClientRect();
+    
+    const distancia = Math.hypot((r1.left - r2.left), (r1.top - r2.top));
+
+    if (distancia < 60) { 
+        const eEmisor = prepararFisica(emisor);
+        const eReceptor = prepararFisica(receptor);
+        
+        let vaAIzquierda = false;
+        if (jugadorEmisor === 'J1') {
+            vaAIzquierda = teclas.has('KeyA');
+        } else if (jugadorEmisor === 'J2') {
+            vaAIzquierda = teclas.has('ArrowLeft');
+        }
+        
+        let direccion = vaAIzquierda ? -1 : 1;
+        let objetivoAEmpujar = receptor;
+        
+        if (eReceptor.parryActivo) {
+            direccion = -direccion;     
+            objetivoAEmpujar = emisor;  
+            
+            // 🔥 QUITAR COOLDOWN AL PARRY (Para combates entre jugadores)
+            eReceptor.enParry = false;      // Le quita el bloqueo de 1.5s inmediatamente
+            eReceptor.parryActivo = false; // Apaga el parry actual para que pueda activar el siguiente
+            clearTimeout(eReceptor.parryVentanaTimeout);
+            eReceptor.parryVentanaTimeout = null;
+            clearTimeout(eReceptor.parryCooldownTimeout);
+            eReceptor.parryCooldownTimeout = null;
+            receptor.style.filter = "none"; // Quita el brillo azul al instante para poder reiniciarlo
+            
+            emisor.style.filter = "brightness(3) drop-shadow(0px 0px 10px #ff0000)";
+            setTimeout(() => { emisor.style.filter = "none"; }, 150);
+        }
+
+        let fuerza = 16;
+        let bucleEmpujon = setInterval(() => {
+            desplazarSeguro(objetivoAEmpujar, direccion * fuerza, 0, nivelActual);
+            fuerza *= 0.82; 
+        }, 16);
+
+        setTimeout(() => { 
+            clearInterval(bucleEmpujon); 
+        }, 200);
+    }
+}
+
+function actualizarAnimacionJ1(el, e, der, izq) {
+    try {
+        let nuevaRuta = "media/avatar_d838d3387853.webp";      // Quieto (Mirada al frente)
+        if (e.parryActivo) {
+            nuevaRuta = "media/avatar_b8df06ecda44.webp";
+        } else if (e.enDash) {
+            nuevaRuta = (e.direccionDash === -1) ? "media/avatar_80cf8cd03c30.webp" : "media/avatar_f0ea388c4843.webp";
+        }else if (!e.suelo) {
+            nuevaRuta = "media/avatar_5564ca830fb4.webp";       // En el aire
+        } else if (der && !izq) {
+            nuevaRuta = "media/avatar_6703644b70ff.webp";     // Caminando a la derecha
+        } else if (izq && !der) {
+            nuevaRuta = "img/p2_izquierda.gif";
+            nuevaRuta = "media/avatar_654c01e20101.webp";   // Caminando a la izquierda
+        }
+        if (el.getAttribute('src') !== nuevaRuta) {
+            el.src = nuevaRuta;
+        }
+    } catch (err) {
+        console.warn("Fallo visual J2 ignorado para no congelar el juego:", err);
+    }
+}
+function actualizarAnimacionJ2(el, e, der, izq) {
+    try {
+        let nuevaRuta = "media/avatar_c2b3ff014fa1.webp";
+        if (e.parryActivo) {
+            nuevaRuta = "media/avatar_2522a4f0e28c.webp";
+        } else if (e.enDash) {
+            nuevaRuta = (e.direccionDash === -1) ? "media/avatar_c47b6c740014.webp" : "media/avatar_3f6b5ae5bd8b.webp";
+        }else if (!e.suelo) {
+            nuevaRuta = "media/avatar_4357d34314e2.webp";
+        } else if (der && !izq) {
+            nuevaRuta = "media/avatar_08123928b84c.webp";
+        } else if (izq && !der) {
+            nuevaRuta = "media/avatar_7e1bbb7d5f9c.webp";
+        }
+        if (el.getAttribute('src') !== nuevaRuta) {
+            el.src = nuevaRuta;
+        }
+    } catch (err) {
+        console.warn("Fallo visual J1 ignorado para no congelar el juego:", err);
+    }
+}
+document.getElementById('respuestaFinal').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();resolverRetoFinal();}});
+requestAnimationFrame(cuadroFisica);
+</script>
+
+<script>
+// Integración DACA con Math Arcade: se conserva el funcionamiento del juego de Diego.
+const pistaPortadaDaca = new Audio('sonidos_Daca/portada.mp3');
+pistaPortadaDaca.loop = true;
+pistaPortadaDaca.volume = .16;
+pistaPortadaDaca.preload = 'none';
+const pistaFinalDaca = new Audio('sonidos_Daca/final.mp3');
+pistaFinalDaca.volume = .32;
+pistaFinalDaca.preload = 'none';
+const efectosDaca = {
+  puntos: new Audio('sonidos_Daca/puntos.mp3'),
+  dano: new Audio('sonidos_Daca/dano.mp3')
+};
+efectosDaca.puntos.volume = .7;
+efectosDaca.dano.volume = .65;
+let audioDacaActivo = true;
+let audioDacaDesbloqueado = false;
+let pantallaActualDaca = 'portada';
+function playSeguroDaca(audio){
+ if(!audioDacaActivo || !audioDacaDesbloqueado || document.hidden)return;
+ try{let x=audio.play();if(x && x.catch)x.catch(()=>{});}catch(e){}
+}
+function reproducirEfectoDaca(tipo){
+ let a=efectosDaca[tipo];if(!a)return;
+ try{a.pause();a.currentTime=0;}catch(e){}
+ playSeguroDaca(a);
+}
+function actualizarAudioDaca(id){
+  pantallaActualDaca=id;
+  const estaJugando=/^nivel[1-4]$/.test(id);
+  if(id==='portada'||id==='bienvenida'||estaJugando){
+    pistaFinalDaca.pause();
+    pistaPortadaDaca.volume=estaJugando?.10:.16;
+    playSeguroDaca(pistaPortadaDaca); // Música en bucle durante los 4 niveles.
+  }else{
+    pistaPortadaDaca.pause();
+    if(id==='final'){
+      try{pistaFinalDaca.currentTime=0;}catch(e){}
+      playSeguroDaca(pistaFinalDaca);
+    }else pistaFinalDaca.pause();
+  }
+}
+function mostrarBienvenidaDaca(){
+  audioDacaDesbloqueado=true;
+  mostrarPantalla('bienvenida');
+}
+function alternarAudioDaca(){
+ audioDacaDesbloqueado=true;
+ audioDacaActivo=!audioDacaActivo;
+ const b=document.getElementById('controlAudioDaca');
+ b.textContent=audioDacaActivo?'🔊 Silenciar':'🔇 Activar sonido';
+ b.setAttribute('aria-pressed',String(audioDacaActivo));
+ if(!audioDacaActivo){
+  pistaPortadaDaca.pause();pistaFinalDaca.pause();
+  Object.values(efectosDaca).forEach(a=>a.pause());
+ }else actualizarAudioDaca(pantallaActualDaca);
+}
+document.addEventListener('pointerdown',()=>{
+ if(!audioDacaDesbloqueado){audioDacaDesbloqueado=true;actualizarAudioDaca(pantallaActualDaca);}
+},{once:true,passive:true});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){pistaPortadaDaca.pause();pistaFinalDaca.pause();}
+ else actualizarAudioDaca(pantallaActualDaca);
+});
+window.addEventListener('pagehide',()=>{pistaPortadaDaca.pause();pistaFinalDaca.pause()});
+</script>
+<script src="../../assets/arcade-nav.js"></script>
+
+</body>
+</html>

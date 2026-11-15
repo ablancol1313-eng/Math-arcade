@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Arcade | Math Pixels</title>
+<style>
+/* =========================================================
+1. AQUÍ CAMBIAN LOS COLORES Y TAMAÑOS.
+Conserven los nombres de las variables, los : y los ;.
+   ========================================================= */
+:root {
+  --pagina: white;          /* Color general. */
+  --texto: #202020;         /* Letras. */
+  --botones: #dddddd;       /* Fondo de botones. */
+--texto-boton: black;
+  --panel: #fffffff2;       /* Fondo legible de tarjetas y bienvenida. */
+--borde: #777777;
+  --seleccion: #2462bc;     /* Contorno del avatar elegido. */
+  --escenario: #eeeeee;    /* Fondo sin foto del colegio. */
+--titulo-perder: #a01818;
+  --tam-personaje: 110px;   /* AQUÍ cambian el tamaño del avatar en el recorrido. */
+  --tam-puerta: 150px;       /* AQUÍ cambia tamaño de la puerta. */
+  --tam-reto: 26px;        /* AQUÍ cambian tamaño de las preguntas. */
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--pagina); color: var(--texto); font-family: Arial,sans-serif; }
+[hidden] { display: none !important; }
+button, input { font: inherit; }
+button { background: var(--botones); color: var(--texto-boton); border: 1px solid var(--borde); padding: 11px 17px; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--seleccion); outline-offset: 3px; }
+.pantalla { position: relative; height: 100dvh; overflow: auto; background-position: center; background-size: cover; }
+.centrada { display: grid; place-items: center; padding: 20px; }
+.panel { width: min(900px,100%); padding: 25px; background: var(--panel); border: 1px solid var(--borde); }
+h1 { font-size: clamp(34px,6vw,60px); margin: 0 0 15px; }
+h2 { font-size: 28px; }
+p,li { font-size: 17px; line-height: 1.5; }
+.acciones { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+/* PORTADA A PANTALLA COMPLETA, SIN FRANJAS NI RECORTES.
+   fill ajusta el ancho y el alto a la ventana; cambia ligeramente las proporciones.
+   Los botones quedan sobre el suelo, debajo de los personajes. */
+#portada { position: relative; text-align: center; background-color: #1da5ed; display: grid; place-items: center; padding: 0; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
+#fotoPortada { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: fill; }
+#portada .panel { position: absolute; z-index: 1; bottom: max(12px,env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); margin: 0; padding: 10px 14px; }
+#portada .acciones { margin: 0; gap: 8px; }
+#portada button { padding: 10px 14px; font-size: clamp(13px,2vw,17px); }
+#portada.con-imagen .textoPortada { display: none; }
+#fotoInstrucciones { display: block; width: 100%; max-height: 40vh; object-fit: contain; }
+#avatares { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.opcionAvatar { min-width: 0; display: grid; place-items: center; gap: 10px; background: var(--panel); border: 3px solid var(--borde); }
+.opcionAvatar[aria-pressed="true"] { border-color: var(--seleccion); outline: 2px solid var(--seleccion); }
+.opcionAvatar img { width: 100%; height: 150px; object-fit: contain; }
+.opcionAvatar .ejemplo { display: grid; place-items: center; height: 150px; font-size: 65px; }
+#seleccionActual { text-align: center; }
+
+/* 2. ACOMODO DEL ESCENARIO: NO BORREN LOS id. */
+#juego { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+.hud { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px; background: var(--panel); border: 1px solid var(--borde); }
+#escenario { position: relative; flex: 1; min-height: 0; overflow: hidden; background-color: var(--escenario); background-position: center; background-size: cover; border: 1px solid var(--borde); }
+#personaje { position: absolute; z-index: 4; width: clamp(45px,11vw,var(--tam-personaje)); height: clamp(55px,14vw,var(--tam-personaje)); display: grid; place-items: center; transition: left .75s ease,top .75s ease; }
+#personaje img { width: 100%; height: 100%; object-fit: contain; }
+#avatarEjemplo { font-size: clamp(35px,8vw,75px); }
+#nombrePersonaje { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); max-width: 160%; padding: 2px 6px; background: var(--panel); color: var(--texto); font-size: 12px; text-align: center; }
+/* PUERTA: se ubica automáticamente al final de la ruta de cada nivel. */
+#puertaSalida { position:absolute; z-index:2; width:clamp(50px,12vw,var(--tam-puerta)); height:clamp(65px,15vw,130px); padding:0; border:2px solid #666; background:#ffffffbb; display:grid; place-items:center; overflow:hidden; }
+#puertaSalida:disabled { opacity:.65; }
+#puertaSalida.abierta { border:4px solid #268139; background:#e7ffe5dd; box-shadow:0 0 14px #44b855; }
+#puertaSalida img { width:100%; height:100%; object-fit:contain; }
+#puertaEjemplo { font-size:clamp(40px,9vw,80px); }
+#personaje.entrando { opacity:0; transform:scale(.3); }
+#personaje { transition:left .75s ease,top .75s ease,opacity .4s ease,transform .4s ease; }
+#panelReto { position: absolute; z-index: 3; width: min(440px,44%); max-height: max(110px,calc(100% - 150px)); overflow: auto; padding: 20px; color: var(--texto); background: var(--panel); }
+#panelReto.tarjeta { border: 2px solid var(--borde); border-radius: 16px; box-shadow: 0 8px 20px #0003; }
+#panelReto.simple { border: 0; border-radius: 0; box-shadow: none; }
+/* Las posiciones se eligen en configuracion o en cada nivel. */
+/* Tarjeta centrada en la zona superior: deja un carril visible abajo. */
+#panelReto.centro { left: 50%; top: calc((100% - 150px)/2); transform: translate(-50%,-50%); }
+#panelReto.superiorIzquierda { left: 2%; top: 2%; }
+#panelReto.superiorDerecha { right: 2%; top: 2%; }
+#panelReto.inferiorIzquierda { left: 2%; bottom: 2%; }
+#panelReto.inferiorDerecha { right: 2%; bottom: 2%; }
+#panelReto.personalizada { left: var(--reto-x,2%); top: var(--reto-y,2%); }
+/* OPCIONAL: descomenten SOLO este bloque si quieren controlar la posición
+   directamente aquí. Reemplaza la posición seleccionada en configuracion. */
+/*
+#panelReto {
+left: 5% !important;
+top: 10% !important;
+right: auto !important;
+bottom: auto !important;
+transform: none !important;
+}
+*/
+/* En CSS: quiten SOLO las líneas de apertura y cierre del bloque opcional. */
+#pregunta { font-size: var(--tam-reto); font-weight: bold; margin: 8px 0 14px; }
+#opciones { line-height: 1.6; white-space: pre-line; }
+label { display: block; margin-bottom: 5px; }
+input { width: 100%; padding: 10px; border: 1px solid var(--borde); margin-bottom: 10px; background: white; color: #222; }
+#mensaje { min-height: 20px; margin: 10px 0 0; font-size: 15px; }
+#siguienteReto, #siguienteNivel { margin-top: 10px; }
+#estado { margin: 0; font-size: 15px; background: var(--panel); padding: 6px; }
+#juego > .acciones { margin: 0; }
+#sala { background-color: #dddddd; text-align: center; }
+#sala h2 { font-size: clamp(30px,5vw,50px); color: var(--titulo-perder); }
+/* SALA DE MAESTROS: MENSAJE A LA IZQUIERDA, XIMENA GRANDE A LA DERECHA. */
+#sala { padding: clamp(12px,3vw,36px); }
+#sala .contenidoSala { width: min(1380px,100%); display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); align-items: center; gap: clamp(16px,3vw,44px); }
+#sala .panel { width: 100%; text-align: left; }
+/* AQUÍ CAMBIA EL TAMAÑO DE XIMENA: sube o baja 78dvh. */
+#fotoXimena { display: block; width: 100%; height: 78dvh; object-fit: contain; }
+#figuraXimena { margin: 0; min-width: 0; }
+#figuraXimena figcaption { background: var(--panel); padding: 7px; font-weight: bold; }
+@media(max-width:650px) {
+  #sala .contenidoSala { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; }
+  #fotoXimena { height: 64dvh; }
+  #sala .panel { padding: 12px; }
+  #sala h2 { margin: 0 0 8px; font-size: clamp(22px,5vw,30px); }
+  #sala p { font-size: 14px; }
+  #sala button { padding: 8px; font-size: 13px; }
+}
+#personajeSala { height: 110px; width: 110px; object-fit: contain; }
+#victoria { text-align: center; background-color: var(--escenario); }
+@media(max-width:650px) {
+#avatares { grid-template-columns: repeat(2,1fr); }
+.opcionAvatar img,.opcionAvatar .ejemplo { height: 110px; }
+#panelReto { width: min(400px,70%); padding: 12px; }
+#pregunta { font-size: 21px; }
+.hud { font-size: 13px; padding: 7px; }
+.hud button { padding: 7px; }
+.panel { padding: 17px; }
+}
+@media(prefers-reduced-motion:reduce) { #personaje { transition: none; } }
+
+/* Compatibilidad táctil y tamaño legible en celular */
+html{-webkit-text-size-adjust:100%}
+button,input,select{touch-action:manipulation}
+button{min-height:36px}
+@media(max-width:650px){button{max-width:100%}input{max-width:100%;font-size:16px}img{max-width:100%}}
+
+/* AJUSTES PARA CELULARES, TABLETAS Y PANTALLAS TÁCTILES — OCTUBRE 2026 */
+
+html,body{max-width:100%;overflow-x:clip}button{min-height:44px;touch-action:manipulation}
+input{font-size:16px;min-height:44px}
+@media(max-width:650px) and (orientation:portrait){
+ #fotoPortada{object-fit:contain;background:#0a4677}
+ #portada .panel{padding:8px;max-width:calc(100% - 12px)}
+ #bienvenida,#seleccion{padding:12px}#bienvenida>.panel,#seleccion>.panel{padding:12px;max-height:94dvh;overflow:auto}
+ #juego{height:100dvh;overflow-y:auto;gap:5px;padding:6px}
+ #juego .hud{padding:6px;gap:4px 10px;font-size:12px;justify-content:center}
+ #juego .hud button{padding:7px}
+ #escenario{flex:1 0 27dvh;min-height:170px;max-height:42dvh;width:100%}
+ #panelReto,#panelReto.centro,#panelReto.superiorIzquierda,#panelReto.superiorDerecha,#panelReto.inferiorIzquierda,#panelReto.inferiorDerecha,#panelReto.personalizada{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;transform:none!important;width:100%;max-height:none;overflow:visible;padding:10px 12px;flex:0 0 auto}
+ #pregunta{font-size:clamp(17px,5.3vw,24px);margin:4px 0}
+ #formulario{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+ #formulario label{margin:0;flex:0 0 auto}
+ #respuesta{margin:0;min-width:90px;flex:1 1 90px;width:100px}
+ #formulario button{padding:9px 12px}
+ #estado{margin:0;padding:5px}
+ #juego>.acciones{margin-bottom:env(safe-area-inset-bottom)}
+ #sala .contenidoSala{grid-template-columns:1fr;justify-items:center}
+ #fotoXimena{height:35dvh;width:auto;max-width:100%}
+ #sala .panel{padding:10px}
+ #sala{overflow:auto}
+}
+@media(max-width:900px) and (orientation:landscape){
+ #juego{padding:5px;gap:4px}#juego .hud{font-size:12px;padding:5px}
+ #panelReto{max-height:94%;overflow:auto;padding:7px;width:min(360px,48%)}
+ #pregunta{font-size:18px}#panelReto input{min-height:34px;padding:5px}
+}
+
+
+/* Salida a la portada principal del proyecto desde cualquier pantalla */
+.volver-arcade {
+ position:fixed;top:10px;left:12px;z-index:999999;min-height:38px;
+ display:inline-flex;align-items:center;gap:5px;padding:7px 12px;
+ border:2px solid rgba(255,255,255,.7);border-radius:12px;
+ background:rgba(9,22,51,.92);color:white;text-decoration:none;
+ font:700 13px/1.2 system-ui,Arial,sans-serif;box-shadow:0 2px 10px #0009;
+}
+.volver-arcade:hover,.volver-arcade:focus-visible{background:#2252a2;outline:2px solid #fff;}
+@media(max-width:600px){.volver-arcade{top:8px;left:7px;padding:6px 8px;min-height:36px;font-size:12px;}}
+
+
+/* Ajuste final solicitado: en la sala de maestros, el personaje aparece centrado en el recuadro. */
+#personajeSala{display:block;margin:14px auto 8px !important;}
+@media(max-width:650px){
+  #sala .panel{text-align:center;}
+  #personajeSala{height:120px;width:120px;display:block;margin:14px auto 12px !important;}
+  #sala .acciones{justify-content:center;}
+}
+
+@media(max-width:760px){
+ .pantalla{height:calc(100dvh - var(--arcade-nav-altura))!important;max-height:calc(100dvh - var(--arcade-nav-altura))!important;overflow-y:auto;}
+ #juego{height:calc(100dvh - var(--arcade-nav-altura))!important;max-height:none!important;overflow-y:auto;}
+}
+
+/* Ajuste: la barra inferior no tapa Bienvenida ni Comenzar */
+#portada .panel{bottom:calc(var(--arcade-nav-altura, 0px) + 12px) !important;}
+#portada .acciones{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;}
+#portada button{padding:8px 12px !important;font-size:clamp(12px,1.6vw,15px) !important;}
+@media(max-width:760px){
+  #portada .panel{bottom:calc(var(--arcade-nav-altura, 0px) + 8px) !important;padding:8px 10px !important;max-width:calc(100% - 16px) !important;}
+  #portada button{padding:7px 10px !important;font-size:12px !important;border-radius:10px;}
+}
+
+/* Nombres compactos de los avatares durante el recorrido. */
+#nombrePersonaje {
+  font-size: 10px;
+  line-height: 1.15;
+  white-space: nowrap;
+  width: max-content;
+  max-width: 118px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.91);
+  border: 1px solid rgba(0,0,0,.15);
+  box-shadow: 0 1px 3px rgba(0,0,0,.14);
+  pointer-events: none;
+}
+@media (max-width: 760px) {
+  #nombrePersonaje {font-size: 8px; padding: 2px 4px; max-width: 105px;}
+}
+
+/* La puerta se distingue mejor del fondo, manteniéndose dentro del escenario. */
+#puertaSalida {
+  width:clamp(66px, 14vw, 160px);
+  height:clamp(82px, 16vw, 165px);
+  border:3px solid rgba(255,255,255,.92);
+  border-radius:8px;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+#puertaSalida.abierta {box-shadow:0 0 22px rgba(74,221,103,.8),0 5px 15px #0005;}
+@media(max-width:650px){
+ #puertaSalida{width:clamp(69px,17vw,84px);height:clamp(92px,23vw,112px);border-width:2px;}
+ #puertaEjemplo{font-size:clamp(48px,12vw,70px);}
+}
+
+/* Expo Math Arcade: portadas con acceso visible y verde para jugar (v13). */
+
+body #portada:not([hidden]){
+  height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;
+  max-height:calc(100dvh - var(--arcade-nav-altura,54px)) !important;
+  min-height:0 !important; overflow:hidden !important;
+}
+#portada .panel{
+  position:absolute !important;left:50% !important;bottom:clamp(15px,3vh,28px) !important;
+  transform:translateX(-50%) !important;width:max-content !important;
+  max-width:calc(100% - 20px) !important;background:transparent !important;
+  border:0 !important;box-shadow:none !important;padding:0 !important;margin:0 !important;
+}
+#portada #verInstrucciones{
+  background:#7034d0 !important;color:#fff !important;border:2px solid #fff !important;
+  border-radius:14px !important;font-weight:850 !important;font-size:clamp(15px,2vw,19px) !important;
+  padding:11px 23px !important;min-height:45px !important;
+  box-shadow:0 5px 0 #351479,0 5px 15px #0008;
+}
+#portada #irSeleccion{display:none !important;}
+#bienvenida #elegirDesdeInstrucciones,#seleccion #iniciar{
+  background:#087d42 !important;color:#fff !important;border:2px solid #d6ffdf !important;
+  border-radius:12px !important;font-weight:800 !important;box-shadow:0 4px 0 #064b2a;
+}
+#seleccion #iniciar:disabled{opacity:.55;}
+@media(max-width:760px){
+  #portada #verInstrucciones{font-size:15px !important;padding:10px 18px !important;}
+  #portada .panel{bottom:16px !important;}
+}
+
+
+
+/* v15: estilo unificado para A toda mate */
+body{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif !important;}
+.hud{background:linear-gradient(180deg,#f9fcff 0%,#eef5ff 100%) !important;border:2px solid #a8c9e6 !important;border-radius:18px !important;box-shadow:0 8px 22px rgba(0,0,0,.12);padding:12px 14px !important;}
+.hud strong,.hud span{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:14px;background:rgba(255,255,255,.85);border:1px solid rgba(84,137,191,.28);font-weight:800;}
+#panelReto{border:3px solid #2f73c8 !important;border-radius:22px !important;background:linear-gradient(180deg,rgba(255,248,244,.98) 0%,rgba(245,252,255,.98) 100%) !important;box-shadow:0 16px 32px rgba(8,27,56,.18) !important;}
+#panelReto::before{content:"🧠 RETO MATEMÁTICO";display:block;margin:0 0 10px;color:#0f5ea8;font-weight:900;letter-spacing:.08em;font-size:13px;}
+#pregunta{font-size:clamp(28px,2.5vw,36px) !important;line-height:1.16;color:#1c2d57;}
+#formulario label{font-weight:800;color:#21539e;}
+input{border:2px solid #8bb8ef !important;border-radius:14px !important;padding:12px 14px !important;box-shadow:inset 0 1px 3px rgba(0,0,0,.08);}
+button:not(.opcionAvatar){border:2px solid #fff !important;border-radius:14px !important;font-weight:900 !important;box-shadow:0 5px 0 rgba(14,44,118,.7),0 10px 18px rgba(0,0,0,.16) !important;color:#fff !important;background:linear-gradient(180deg,#3e72f2 0%,#1846b9 100%) !important;}
+#iniciar,#elegirDesdeInstrucciones,#volverAJugar,#reintentar{background:linear-gradient(180deg,#1ab864 0%,#0d8b47 100%) !important;box-shadow:0 5px 0 #076131,0 10px 18px rgba(0,0,0,.16) !important;}
+#volverBienvenida,#volverSeleccion,#volverJuego,#volverSala,#volverVictoria{background:linear-gradient(180deg,#3e72f2 0%,#1846b9 100%) !important;box-shadow:0 5px 0 #0f2f82,0 10px 18px rgba(0,0,0,.16) !important;}
+#pausar{background:linear-gradient(180deg,#ffd26c 0%,#f0a128 100%) !important;color:#342100 !important;border-color:#fff4d1 !important;box-shadow:0 5px 0 #b16f07,0 10px 18px rgba(0,0,0,.15) !important;}
+#reiniciar,#cambiarPersonaje{background:linear-gradient(180deg,#ffb84b 0%,#e28d15 100%) !important;color:#302000 !important;border-color:#fff2d1 !important;box-shadow:0 5px 0 #aa6502,0 10px 18px rgba(0,0,0,.16) !important;}
+#sala .acciones button{min-width:200px;}
+button:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-1px);} 
+@media(max-width:650px){.hud{gap:8px}.hud strong,.hud span{padding:6px 9px;font-size:12px;}#pregunta{font-size:clamp(22px,6vw,28px) !important;}#panelReto{padding:12px !important;}}
+
+
+/* Música original de A toda mate: control accesible en todas las pantallas. */
+#controlMusicaMate{
+  position:fixed; top:12px; right:12px; z-index:55;
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:9px 12px; min-height:42px;
+  border:2px solid #fff !important;border-radius:13px !important;
+  background:linear-gradient(180deg,#ffc95a,#f5a322) !important;
+  color:#29202b !important;font-weight:900 !important;
+  box-shadow:0 4px 0 #9a5b13,0 7px 15px #0004 !important;
+  cursor:pointer;
+}
+#controlMusicaMate.en-juego{
+ position:static;flex:none;min-height:38px;margin:0 0 4px 0;
+ padding:8px 11px;font-size:clamp(12px,1vw,15px);
+}
+#controlMusicaMate:focus-visible{outline:3px solid #075cbd;outline-offset:3px;}
+@media(max-width:650px){
+ #controlMusicaMate:not(.en-juego){top:8px;right:8px;font-size:12px;padding:7px 10px;}
+ #controlMusicaMate.en-juego{font-size:12px;padding:6px 9px;min-height:36px;}
+}
+
+</style>
+<link rel="stylesheet" href="../../assets/arcade-nav.css">
+</head>
+<body>
+<!-- Música única para portada, bienvenida, selección, niveles y pantallas finales. -->
+<audio id="musicaFondoMate" src="sonidos/fondo-atodamate.mp3" preload="none" loop></audio>
+<audio id="musicaPortadaMate" src="sonidos/portada-bienvenida-atodamate.mp3" preload="none" loop></audio>
+<button id="controlMusicaMate" type="button" aria-label="Silenciar música de A toda mate" aria-pressed="false">🔊 Música</button>
+<!-- NO BORREN LOS id. LOS TEXTOS SE EDITAN EN configuracion. -->
+<section id="portada" class="pantalla centrada">
+<img id="fotoPortada" alt="Portada del videojuego A toda mate" hidden>
+<div class="panel"><div class="textoPortada"><h1 id="tituloPortada"></h1><p id="frasePortada"></p></div>
+    <div class="acciones"><button id="verInstrucciones">Bienvenida</button><button id="irSeleccion" hidden aria-hidden="true" tabindex="-1">Comenzar</button></div>
+</div>
+</section>
+
+<!-- BIENVENIDA, INTEGRANTES E INSTRUCCIONES JUNTOS, SIN OTRA PANTALLA DE DATOS. -->
+<section id="bienvenida" class="pantalla centrada" hidden><div class="panel">
+<h2 id="saludo"></h2><p>Nosotros somos <strong id="integrantes"></strong>.</p>
+<p id="datosEquipo"></p><p id="descripcion"></p>
+<img id="fotoInstrucciones" alt="Instrucciones diseñadas por el equipo" hidden>
+<h2>¿Cómo se juega?</h2><ol id="listaInstrucciones"></ol>
+<div class="acciones"><button id="elegirDesdeInstrucciones">Elegir personaje</button><button id="volverBienvenida">Volver a portada</button></div>
+</div></section>
+
+<!-- EL USUARIO ELIGE UNO DE SUS CUATRO AVATARES. NO BORREN ESTE CONTENEDOR. -->
+<section id="seleccion" class="pantalla centrada" hidden><div class="panel">
+<h2>Elige a tu personaje</h2><p>Este avatar te acompañará durante todo el recorrido por el colegio.</p>
+<div id="avatares" aria-label="Elige uno de los cuatro avatares"></div>
+<p id="seleccionActual" role="status">Selecciona un personaje.</p>
+<div class="acciones"><button id="iniciar" disabled>Iniciar recorrido</button><button id="volverSeleccion">Volver a portada</button></div>
+</div></section>
+
+<section id="juego" class="pantalla" hidden>
+<header class="hud"><strong id="tituloJuego"></strong><span id="nombreNivel"></span><span>❤️ Vidas: <b id="vidas">3</b></span><span>⭐ Puntos: <b id="puntos">0</b></span><span>⏱ Tiempo: <b id="tiempo">30</b> s</span><button id="pausar">⏸ Pausar</button></header>
+<!-- El escenario recibe la foto del nivel correspondiente. -->
+<div id="escenario" aria-label="Recorrido por el colegio">
+    <!-- NO BORREN LOS id. La imagen se activa en configuracion.puertaImagen. -->
+    <button id="puertaSalida" type="button" aria-label="Puerta cerrada: completa los retos" disabled><span id="puertaEjemplo" role="img" aria-label="Puerta de salida">🚪</span><img id="fotoPuerta" alt="Puerta al siguiente lugar" hidden></button>
+    <div id="personaje"><span id="avatarEjemplo" role="img" aria-label="Avatar de ejemplo">🧑</span><img id="fotoPersonaje" alt="Avatar seleccionado" hidden><span id="nombrePersonaje"></span></div>
+    <section id="panelReto" aria-label="Reto matemático">
+    <span id="contadorRetos"></span><p id="pregunta"></p><div id="opciones"></div>
+    <form id="formulario" autocomplete="off"><label for="respuesta">Tu respuesta:</label><input id="respuesta" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" required placeholder="Resultado o letra de la opción"><button id="responder" type="submit">Responder</button></form>
+    <p id="mensaje" role="status" aria-live="polite"></p><button id="siguienteReto" hidden>Siguiente reto</button><button id="siguienteNivel" hidden>Avanzar al siguiente lugar</button>
+    </section>
+</div>
+<p id="estado" role="status"></p>
+<div class="acciones"><button id="reiniciar">Reiniciar recorrido</button><button id="volverJuego">Volver a portada</button></div>
+</section>
+
+<!-- AL PERDER SE MUESTRA ESTA FOTO: LA SALA DE MAESTROS. -->
+<section id="sala" class="pantalla centrada" hidden>
+<div class="contenidoSala">
+
+<div class="panel">
+<h2 id="tituloDerrota"></h2><p id="textoDerrota"></p><p id="resumenDerrota"></p>
+<img id="personajeSala" alt="Avatar en la sala de maestros" hidden>
+<div class="acciones"><button id="reintentar">Volver a intentarlo</button><button id="cambiarPersonaje">Elegir otro personaje</button><button id="volverSala">Volver a portada</button></div>
+</div>
+<figure id="figuraXimena" hidden>
+<img id="fotoXimena" alt="Ximena, en la sala de maestros" hidden>
+
+</figure>
+</div></section>
+<section id="victoria" class="pantalla centrada" hidden><div class="panel">
+<h2>¡Completaste el recorrido por el colegio!</h2><p id="resumenVictoria"></p>
+<div class="acciones"><button id="volverAJugar">Volver a jugar</button><button id="volverVictoria">Volver a portada</button></div>
+</div></section>
+<dialog id="pausa" aria-labelledby="tituloPausa"><h2 id="tituloPausa">Recorrido en pausa</h2><button id="continuarPausa">Continuar</button></dialog>
+<script>
+/* Audio del equipo A toda mate: portada, fondo de niveles y efectos independientes.
+   Safari y Chrome pueden requerir una interacción antes de reproducir. */
+const musicaFondoMate=document.getElementById('musicaFondoMate');
+const musicaPortadaMate=document.getElementById('musicaPortadaMate');
+const controlMusicaMate=document.getElementById('controlMusicaMate');
+let musicaMateHabilitada=true;
+let pantallaMate='portada';
+let ultimoEfectoMate=null;
+const efectosMate={
+ vida:new Audio('sonidos/perder vida-atodamate.mp3'),
+ nivel:new Audio('sonidos/nivelcompletado-atodamate.mp3'),
+ puerta:new Audio('sonidos/Level Complete-atodamate.mp3'),
+ ganar:new Audio('sonidos/gana-atodamate.mp3')
+};
+for(const a of Object.values(efectosMate)){a.preload='none';a.volume=.76;}
+efectosMate.nivel.volume=.37; // La celebración larga no debe ahogar la conversación.
+musicaFondoMate.volume=.14;
+musicaPortadaMate.volume=.19;
+function reproducirSeguroMate(audio){
+ if(!musicaMateHabilitada||document.hidden||!audio.paused)return;
+ try{const p=audio.play();if(p?.catch)p.catch(()=>{});}catch(e){}
+}
+function sonarMusicaMate(){
+ if(!musicaMateHabilitada||document.hidden)return;
+ if(pantallaMate==='portada'||pantallaMate==='bienvenida'||pantallaMate==='seleccion'){
+   musicaFondoMate.pause();reproducirSeguroMate(musicaPortadaMate);
+ }else if(pantallaMate==='juego'&&!document.getElementById('pausa').open){
+   musicaPortadaMate.pause();reproducirSeguroMate(musicaFondoMate);
+ }else{musicaFondoMate.pause();musicaPortadaMate.pause();}
+}
+function cambiarMusicaMate(id){pantallaMate=id;sonarMusicaMate();}
+function sonarEfectoMate(tipo){
+ if(!musicaMateHabilitada||document.hidden)return;
+ let a=efectosMate[tipo];if(!a)return;
+ if(ultimoEfectoMate){ultimoEfectoMate.pause();ultimoEfectoMate.currentTime=0;}
+ ultimoEfectoMate=a;
+ musicaFondoMate.volume=.045;
+ a.currentTime=0;
+ a.onended=()=>{if(ultimoEfectoMate===a){ultimoEfectoMate=null;musicaFondoMate.volume=.14;}};
+ try{const p=a.play();if(p?.catch)p.catch(()=>{musicaFondoMate.volume=.14;});}catch(e){musicaFondoMate.volume=.14;}
+}
+function ubicarControlMusicaMate(pantalla){
+ const marcador=document.querySelector('#juego .hud');
+ if(pantalla==='juego'&&marcador){marcador.appendChild(controlMusicaMate);controlMusicaMate.classList.add('en-juego');}
+ else{document.body.appendChild(controlMusicaMate);controlMusicaMate.classList.remove('en-juego');}
+ cambiarMusicaMate(pantalla);
+}
+controlMusicaMate.addEventListener('click',()=>{
+ musicaMateHabilitada=!musicaMateHabilitada;
+ controlMusicaMate.textContent=musicaMateHabilitada?'🔊 Silenciar':'🔇 Activar sonido';
+ controlMusicaMate.setAttribute('aria-pressed',String(!musicaMateHabilitada));
+ controlMusicaMate.setAttribute('aria-label',musicaMateHabilitada?'Silenciar música y sonidos de A toda mate':'Activar sonidos de A toda mate');
+ if(!musicaMateHabilitada){musicaFondoMate.pause();musicaPortadaMate.pause();if(ultimoEfectoMate)ultimoEfectoMate.pause();}
+ else sonarMusicaMate();
+});
+document.addEventListener('pointerdown',sonarMusicaMate,{capture:true,passive:true});
+document.addEventListener('keydown',sonarMusicaMate,{capture:true});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){musicaFondoMate.pause();musicaPortadaMate.pause();if(ultimoEfectoMate)ultimoEfectoMate.pause();}else sonarMusicaMate();});
+window.addEventListener('pagehide',()=>{musicaFondoMate.pause();musicaPortadaMate.pause();if(ultimoEfectoMate)ultimoEfectoMate.pause();});
+sonarMusicaMate();
+</script>
+
+<script>
+'use strict';
+/* ==========================================================
+3. ZONA DEL EQUIPO: TEXTOS, OPCIONES E IMÁGENES.
+Todas las imágenes van junto al HTML. Ejemplo: patio.webp
+Si usan subcarpeta: imagenes/patio.webp	
+   DESCOMENTAR = quitar las dos barras // al principio de una línea.
+   Ejemplo: // portada: 'portada.webp',
+queda:      portada: 'portada.webp',
+No borren comillas ni comas. Respeten .png / .jpg / .jpeg.
+   ========================================================== */
+const configuracion = {
+// ==========================================================
+// AQUÍ CAMBIA EL NOMBRE DEL ARCHIVO DE LA FOTO DE XIMENA.
+// Guarda esa imagen en la misma carpeta que este HTML.
+// Si no encuentra el archivo, se muestra la foto integrada original.
+ximenaImagen: 'XIMENA.webp',
+// AQUÍ CAMBIA EL MENSAJE QUE APARECE A LA IZQUIERDA.
+// Busca más abajo: tituloDerrota y textoDerrota.
+// ==========================================================
+titulo: 'A toda mate',
+frase: 'Bienvendos al mejor juego matematico',
+bienvenida: '¡Bienvenidos a nuestro videojuego!',
+integrantes: 'Sofia, Valentina, Diego y Pablo',
+datos: 'Este es el proyecto de mate y computacionde la generacion de 3ro de secundaria',
+descripcion: 'Tendras que atravesar diferenes escenarios de la secundaria y ganar puntos',
+instrucciones: [
+    'Elige uno de los cuatro personajes del equipo.',
+    'Cada respuesta correcta hace caminar al personaje. Completa los retos y pulsa Avanzar al siguiente lugar para cambiar de escenario.',
+    'Tienes 30 segundos por ejercicio. Cada error o reto sin responder a tiempo te quita una vida.',
+    'Si pierdes tus tres vidas, irás a la sala de maestros.',
+    'Completa todos los retos del lugar: la puerta se abre. Púlsala para entrar al siguiente escenario.'
+],
+  // AQUÍ CAMBIA IMAGEN DE LA PORTADA: descomenta y escribe su archivo.
+portada: 'Atodamate.webp',
+  // AQUÍ CAMBIA IMAGEN DE LAS INSTRUCCIONES, junto a bienvenida y nombres.
+  //instruccionesImagen: 'Atodamate.webp',
+  // AQUÍ CAMBIA FONDO DE LA PANTALLA DE BIENVENIDA.
+fondoBienvenida: 'Fondo.webp',
+  // AQUÍ CAMBIA FONDO DE SELECCIÓN DE PERSONAJES.
+fondoSeleccion: 'Fondo.webp',
+  // AQUÍ CAMBIA IMAGEN DE LA PUERTA. Si no la activan, se verá 🚪.
+puertaImagen: 'Puerta cerrada pix.webp',
+  // OPCIONAL: otra imagen cuando la puerta ya está abierta.
+puertaAbiertaImagen: 'puerta abierta pix.webp',
+
+  // AQUÍ CAMBIA FOTO DE LA SALA DE MAESTROS: NO es un nivel para ganar.
+// Fondo integrado. Para cambiarlo pueden sustituir el contenido entre comillas por 'Salademaestros.webp'.
+salaMaestros: 'sala-maestros-integrada.webp',
+// RESPALDO DE XIMENA: imagen integrada, no necesitan editar esta línea.
+ximenaImagenIntegrada: 'ximena-integrada.webp',
+  // AQUÍ CAMBIA FOTO DEL FINAL FELIZ (opcional).
+  // fondoVictoria: 'final_colegio.webp',
+tituloDerrota: '¡Te quedaste sin vidas!',
+textoDerrota: 'Te enviaron a la sala de maestros. ¡Vuelve a intentarlo!',
+
+  vidas: 3, // CAMBIA: vidas para todo el recorrido; no se recuperan entre lugares.
+puntosPorAcierto: 10,
+  moverSoloAlCambiarLugar: false, // false: CAMINA con CADA RESPUESTA CORRECTA.
+  // OPCIONAL: true lo deja quieto hasta pulsar Avanzar al siguiente lugar.
+  segundosPorReto: 30, // AQUÍ CAMBIA TIEMPO: 20, 30, 45... segundos.
+  // OPCIONAL: descomenta para mandar a sala de maestros desde el PRIMER error.
+  // enviarPorPrimerError: true,
+
+  // OPCIONES DE RETO: DESCOMENTEN SOLO UNA ALTERNATIVA SI LA QUIEREN.
+  // Si no activan ninguna, se muestra tarjeta en el centro.
+  // estiloReto: 'simple', // Recuadro sencillo, sin sombra ni esquinas redondeadas.
+  // estiloReto: 'tarjeta', // Recuadro de tarjeta con borde y sombra.
+
+  // posicionReto: 'superiorIzquierda',
+  // posicionReto: 'superiorDerecha',
+  // posicionReto: 'inferiorIzquierda',
+  // posicionReto: 'inferiorDerecha',
+  // posicionReto: 'centro',
+
+  // OPCIONAL: para elegir una posición exacta, descomenten ESTAS TRES líneas.
+  // posicionReto: 'personalizada',
+  // retoX: 8, // Porcentaje desde la izquierda.
+  // retoY: 10, // Porcentaje desde arriba.
+  // Pongan la tarjeta donde no tape al personaje. Eviten valores mayores de 50.
+};
+
+/* 4. SUS CUATRO MONITOS: cambien nombre y descomenten imagen.
+Exporten SOLO el avatar en PNG sin fondo. NO toda la foto del colegio.
+   Se usa la MISMA imagen en el selector y durante el recorrido. */
+const personajes = [
+{ nombre: 'Pablo Backyardigan',
+    imagen: 'Pablo.webp', // AQUÍ CAMBIA IMAGEN DEL PERSONAJE 1.
+},
+{ nombre: ' Princesita Sofia',
+    imagen: 'Sofia.webp', // AQUÍ CAMBIA IMAGEN DEL PERSONAJE 2.
+},
+{ nombre: 'Vale Lasaña',
+    imagen: 'Valentina.webp', // AQUÍ CAMBIA IMAGEN DEL PERSONAJE 3.
+},
+{ nombre: ' Go Diego Go',
+    imagen: 'Diego.webp', // AQUÍ CAMBIA IMAGEN DEL PERSONAJE 4.
+}
+];
+
+/* 5. NIVELES: CINCO ACTIVOS, CON DIEZ EJERCICIOS CADA UNO.
+Cambien los nombres genéricos por los lugares que fotografiaron.
+AQUÍ CAMBIA FONDO está señalado en cada nivel.
+Ejercicios tomados de nombre.py; respuestas corregidas según cada pregunta.
+En las ecuaciones cuadráticas se acepta cualquiera de sus soluciones reales.
+Al agregar retos, la ruta debe tener UNA POSICIÓN MÁS que el número de retos.
+
+ruta: parejas [x,y] en porcentajes. x mayor = derecha; y mayor = abajo.
+Ejemplo: [10,65] significa 10% desde izquierda y 65% desde arriba.
+La primera pareja es el inicio y la última es la salida hacia el siguiente lugar.
+Con moverSoloAlCambiarLugar: true, solo se usan el inicio y la salida.
+Con false, cada acierto lo mueve al siguiente punto de la ruta.
+El orden de las parejas es el orden del recorrido; pueden intercambiarlas.
+La PUERTA aparece en la ÚLTIMA pareja. Para moverla, cambien esa pareja.
+Cada nivel tiene opciones puerta comentadas: derecha, izquierda, arriba, abajo.
+   Quiten // de UNA opción en el nivel que quieran. No modifiquen el motor.
+El personaje caminará hasta esa posición al pulsar la puerta abierta.
+x entre 2 y 80; y=76 deja el avatar en un carril debajo de la tarjeta.
+El motor limita la posición para que no salga de la foto. Pueden cambiar y.
+Este recorrido es animado por aciertos, no necesita controlar con flechas.
+La sala de maestros se configura ARRIBA y solo aparece al perder.
+*/
+const niveles = [
+{
+    nombre: 'Gradas', // AQUÍ CAMBIA NOMBRE DEL LUGAR.
+    // PUERTA DE ESTE NIVEL: DESCOMENTEN SOLO UNA OPCIÓN (quiten //).
+    // puerta: [82, 76], // DERECHA: cerca de la esquina inferior derecha.
+    // puerta: [3, 76],  // IZQUIERDA: cerca de la esquina inferior izquierda.
+    // puerta: [45, 3],  // ARRIBA: al centro de la parte superior.
+    // puerta: [45, 76], // ABAJO: al centro de la parte inferior.
+    // puerta: [80, 3],  // ARRIBA A LA DERECHA.
+    // puerta: [3, 3],   // ARRIBA A LA IZQUIERDA.
+    // puerta: [60, 45], // PERSONALIZADA: cambien [horizontal, vertical].
+    // No activen varias líneas puerta a la vez. Sin activar ninguna,
+    // aparece al final de ruta. Al entrar, el avatar camina hacia ella.
+    // Si la tarjeta tapa la puerta, cambien posicionReto de este nivel.
+     fondo: 'Gradas.webp', // AQUÍ CAMBIA FONDO DEL NIVEL 1. QUITA //.
+    // posicionReto: 'superiorDerecha', // OPCIONAL: posición SOLO para este nivel.
+    ruta: [[5.0, 76], [12.0, 76], [19.0, 76], [26.0, 76], [33.0, 76], [40.0, 76], [47.0, 76], [54.0, 76], [61.0, 76], [68.0, 76], [75.0, 76]], // Inicio + 10 avances: uno por acierto.
+    // 10 ejercicios del nivel 1 del Python, en el mismo orden.
+    retos: [
+        {
+            "pregunta": "¿Cuánto es 425+237?",
+            "respuesta": 662.0
+        },
+        {
+            "pregunta": "¿Cuánto es 596+152?",
+            "respuesta": 748.0
+        },
+        {
+            "pregunta": "¿Cuánto es 846+367?",
+            "respuesta": 1213.0
+        },
+        {
+            "pregunta": "¿Cuánto es 341+276?",
+            "respuesta": 617.0
+        },
+        {
+            "pregunta": "¿Cuánto es 938+497?",
+            "respuesta": 1435.0
+        },
+        {
+            "pregunta": "¿Cuánto es 906-324?",
+            "respuesta": 582.0
+        },
+        {
+            "pregunta": "¿Cuánto es 713-417?",
+            "respuesta": 296.0
+        },
+        {
+            "pregunta": "¿Cuánto es 460-353?",
+            "respuesta": 107.0
+        },
+        {
+            "pregunta": "¿Cuánto es 797-304?",
+            "respuesta": 493.0
+        },
+        {
+            "pregunta": "¿Cuánto es 888-566?",
+            "respuesta": 322.0
+        }
+    ]
+},
+{
+    nombre: 'alberca',
+    // PUERTA DE ESTE NIVEL: DESCOMENTEN SOLO UNA OPCIÓN (quiten //).
+    // puerta: [82, 76], // DERECHA: cerca de la esquina inferior derecha.
+    // puerta: [3, 76],  // IZQUIERDA: cerca de la esquina inferior izquierda.
+    // puerta: [45, 3],  // ARRIBA: al centro de la parte superior.
+    // puerta: [45, 76], // ABAJO: al centro de la parte inferior.
+    // puerta: [80, 3],  // ARRIBA A LA DERECHA.
+    // puerta: [3, 3],   // ARRIBA A LA IZQUIERDA.
+    // puerta: [60, 45], // PERSONALIZADA: cambien [horizontal, vertical].
+    // No activen varias líneas puerta a la vez. Sin activar ninguna,
+    // aparece al final de ruta. Al entrar, el avatar camina hacia ella.
+    // Si la tarjeta tapa la puerta, cambien posicionReto de este nivel.
+     fondo: 'Alberca.webp', // AQUÍ CAMBIA FONDO DEL NIVEL 2.
+    // posicionReto: 'superiorIzquierda',
+    ruta: [[75.0, 76], [68.0, 76], [61.0, 76], [54.0, 76], [47.0, 76], [40.0, 76], [33.0, 76], [26.0, 76], [19.0, 76], [12.0, 76], [5.0, 76]], // Inicio + 10 avances: uno por acierto.
+    // 10 ejercicios del nivel 2 del Python, en el mismo orden.
+    retos: [
+        {
+            "pregunta": "¿Cuánto es 35 × 13?",
+            "respuesta": 455.0
+        },
+        {
+            "pregunta": "¿Cuánto es 23 × 17?",
+            "respuesta": 391.0
+        },
+        {
+            "pregunta": "¿Cuánto es 58 × 37?",
+            "respuesta": 2146.0
+        },
+        {
+            "pregunta": "¿Cuánto es 67 × 24?",
+            "respuesta": 1608.0
+        },
+        {
+            "pregunta": "¿Cuánto es 14 × 25?",
+            "respuesta": 350.0
+        },
+        {
+            "pregunta": "¿Cuánto es 12 ÷ 25? Escribe una fracción o redondea a 3 decimales.",
+            "respuesta": 0.48,
+            "tolerancia": 0.000500001
+        },
+        {
+            "pregunta": "¿Cuánto es 47 ÷ 34? Escribe una fracción o redondea a 3 decimales.",
+            "respuesta": 1.3823529411764706,
+            "tolerancia": 0.000500001
+        },
+        {
+            "pregunta": "¿Cuánto es 61 ÷ 53? Escribe una fracción o redondea a 3 decimales.",
+            "respuesta": 1.150943396226415,
+            "tolerancia": 0.000500001
+        },
+        {
+            "pregunta": "¿Cuánto es 72 ÷ 68? Escribe una fracción o redondea a 3 decimales.",
+            "respuesta": 1.0588235294117647,
+            "tolerancia": 0.000500001
+        },
+        {
+            "pregunta": "¿Cuánto es 94 ÷ 85? Escribe una fracción o redondea a 3 decimales.",
+            "respuesta": 1.1058823529411765,
+            "tolerancia": 0.000500001
+        }
+    ]
+},
+{
+    nombre: 'lockers',
+    // PUERTA DE ESTE NIVEL: DESCOMENTEN SOLO UNA OPCIÓN (quiten //).
+    // puerta: [82, 76], // DERECHA: cerca de la esquina inferior derecha.
+    // puerta: [3, 76],  // IZQUIERDA: cerca de la esquina inferior izquierda.
+    // puerta: [45, 3],  // ARRIBA: al centro de la parte superior.
+    // puerta: [45, 76], // ABAJO: al centro de la parte inferior.
+    // puerta: [80, 3],  // ARRIBA A LA DERECHA.
+    // puerta: [3, 3],   // ARRIBA A LA IZQUIERDA.
+    // puerta: [60, 45], // PERSONALIZADA: cambien [horizontal, vertical].
+    // No activen varias líneas puerta a la vez. Sin activar ninguna,
+    // aparece al final de ruta. Al entrar, el avatar camina hacia ella.
+    // Si la tarjeta tapa la puerta, cambien posicionReto de este nivel.
+     fondo: 'Lockers.webp', // AQUÍ CAMBIA FONDO DEL NIVEL 3.
+    // estiloReto: 'simple', // OPCIONAL: estilo SOLO para este nivel.
+    ruta: [[5.0, 76], [12.0, 76], [19.0, 76], [26.0, 76], [33.0, 76], [40.0, 76], [47.0, 76], [54.0, 76], [61.0, 76], [68.0, 76], [75.0, 76]], // Inicio + 10 avances: uno por acierto.
+    // 10 ejercicios del nivel 3 del Python, en el mismo orden.
+    retos: [
+        {
+            "pregunta": "¿Cuánto es 4^5?",
+            "respuesta": 1024.0
+        },
+        {
+            "pregunta": "¿Cuánto es 6^3?",
+            "respuesta": 216.0
+        },
+        {
+            "pregunta": "¿Cuánto es 2^8?",
+            "respuesta": 256.0
+        },
+        {
+            "pregunta": "¿Cuánto es 3^7?",
+            "respuesta": 2187.0
+        },
+        {
+            "pregunta": "¿Cuánto es 9^3?",
+            "respuesta": 729.0
+        },
+        {
+            "pregunta": "¿Cuánto es √225?",
+            "respuesta": 15.0
+        },
+        {
+            "pregunta": "¿Cuánto es √196?",
+            "respuesta": 14.0
+        },
+        {
+            "pregunta": "¿Cuánto es √64?",
+            "respuesta": 8.0
+        },
+        {
+            "pregunta": "¿Cuánto es √289?",
+            "respuesta": 17.0
+        },
+        {
+            "pregunta": "¿Cuánto es √361?",
+            "respuesta": 19.0
+        }
+    ]
+},
+{
+    nombre: 'Salon de Mate',
+    // PUERTA DE ESTE NIVEL: DESCOMENTEN SOLO UNA OPCIÓN (quiten //).
+    // puerta: [82, 76], // DERECHA: cerca de la esquina inferior derecha.
+    // puerta: [3, 76],  // IZQUIERDA: cerca de la esquina inferior izquierda.
+    // puerta: [45, 3],  // ARRIBA: al centro de la parte superior.
+    // puerta: [45, 76], // ABAJO: al centro de la parte inferior.
+    // puerta: [80, 3],  // ARRIBA A LA DERECHA.
+    // puerta: [3, 3],   // ARRIBA A LA IZQUIERDA.
+    // puerta: [60, 45], // PERSONALIZADA: cambien [horizontal, vertical].
+    // No activen varias líneas puerta a la vez. Sin activar ninguna,
+    // aparece al final de ruta. Al entrar, el avatar camina hacia ella.
+    // Si la tarjeta tapa la puerta, cambien posicionReto de este nivel.
+     fondo: 'Abanico.webp', // AQUÍ CAMBIA FONDO DEL NIVEL 4.
+    ruta: [[75.0, 76], [68.0, 76], [61.0, 76], [54.0, 76], [47.0, 76], [40.0, 76], [33.0, 76], [26.0, 76], [19.0, 76], [12.0, 76], [5.0, 76]], // Inicio + 10 avances: uno por acierto.
+    // 10 ejercicios del nivel 4 del Python, en el mismo orden.
+    retos: [
+        {
+            "pregunta": "2x+5=11. ¿Cuánto vale x?",
+            "respuesta": 3.0
+        },
+        {
+            "pregunta": "3x-7=8. ¿Cuánto vale x?",
+            "respuesta": 5.0
+        },
+        {
+            "pregunta": "-4x+10=2. ¿Cuánto vale x?",
+            "respuesta": 2.0
+        },
+        {
+            "pregunta": "4x-9=15. ¿Cuánto vale x?",
+            "respuesta": 6.0
+        },
+        {
+            "pregunta": "10-2x=4. ¿Cuánto vale x?",
+            "respuesta": 3.0
+        },
+        {
+            "pregunta": "8x+5=5x-10. ¿Cuánto vale x?",
+            "respuesta": -5.0
+        },
+        {
+            "pregunta": "5x+4=2x+19. ¿Cuánto vale x?",
+            "respuesta": 5.0
+        },
+        {
+            "pregunta": "7x-3=4x+12. ¿Cuánto vale x?",
+            "respuesta": 5.0
+        },
+        {
+            "pregunta": "6x+2=3x+14. ¿Cuánto vale x?",
+            "respuesta": 4.0
+        },
+        {
+            "pregunta": "3(x-2)=12. ¿Cuánto vale x?",
+            "respuesta": 6.0
+        }
+    ]
+},
+{
+    nombre: 'Salon de Ingles',
+    // PUERTA DE ESTE NIVEL: DESCOMENTEN SOLO UNA OPCIÓN (quiten //).
+    // puerta: [82, 76], // DERECHA: cerca de la esquina inferior derecha.
+    // puerta: [3, 76],  // IZQUIERDA: cerca de la esquina inferior izquierda.
+    // puerta: [45, 3],  // ARRIBA: al centro de la parte superior.
+    // puerta: [45, 76], // ABAJO: al centro de la parte inferior.
+    // puerta: [80, 3],  // ARRIBA A LA DERECHA.
+    // puerta: [3, 3],   // ARRIBA A LA IZQUIERDA.
+    // puerta: [60, 45], // PERSONALIZADA: cambien [horizontal, vertical].
+    // No activen varias líneas puerta a la vez. Sin activar ninguna,
+    // aparece al final de ruta. Al entrar, el avatar camina hacia ella.
+    // Si la tarjeta tapa la puerta, cambien posicionReto de este nivel.
+     fondo: 'salondemate.webp', // AQUÍ CAMBIA FONDO DEL NIVEL 5.
+    ruta: [[5.0, 76], [12.0, 76], [19.0, 76], [26.0, 76], [33.0, 76], [40.0, 76], [47.0, 76], [54.0, 76], [61.0, 76], [68.0, 76], [75.0, 76]], // Inicio + 10 avances: uno por acierto.
+    // 10 ejercicios del nivel 5 del Python, en el mismo orden.
+    retos: [
+        {
+            "pregunta": "x² − 9 = 0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": -3.0,
+            "respuestas": [
+                -3.0,
+                3.0
+            ]
+        },
+        {
+            "pregunta": "x² − 5x + 6 = 0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": 2.0,
+            "respuestas": [
+                2.0,
+                3.0
+            ]
+        },
+        {
+            "pregunta": " − 4x² + 10=2. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": -1.4142135623730951,
+            "respuestas": [
+                -1.4142135623730951,
+                1.4142135623730951
+            ]
+        },
+        {
+            "pregunta": "x² − 4x=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": 0.0,
+            "respuestas": [
+                0.0,
+                4.0
+            ]
+        },
+        {
+            "pregunta": "2x² − 8=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": -2.0,
+            "respuestas": [
+                -2.0,
+                2.0
+            ]
+        },
+        {
+            "pregunta": "x² + 2x − 8=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": -4.0,
+            "respuestas": [
+                -4.0,
+                2.0
+            ]
+        },
+        {
+            "pregunta": "3x² − 12x=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": 0.0,
+            "respuestas": [
+                0.0,
+                4.0
+            ]
+        },
+        {
+            "pregunta": "x² − 6x + 9=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": 3.0,
+            "respuestas": [
+                3.0
+            ]
+        },
+        {
+            "pregunta": "2x² + 5x − 3=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": -3.0,
+            "respuestas": [
+                -3.0,
+                0.5
+            ]
+        },
+        {
+            "pregunta": "x² − 2x − 8=0. Escribe una solución para x (puedes usar √2 o sqrt(2)).",
+            "respuesta": -2.0,
+            "respuestas": [
+                -2.0,
+                4.0
+            ]
+        }
+    ]
+},
+];
+
+/* ==========================================================
+NO MOVER DESDE AQUÍ HASTA EL FINAL.
+Motor de selección, fotos, movimiento, tiempo, vidas y niveles.
+Cambien configuracion, personajes y niveles en las zonas anteriores.
+   ========================================================== */
+const $=id=>document.getElementById(id);
+let elegido=null,nivelActual=0,indice=0,vidas=3,puntos=0,estado='menu';
+let venceEn=0,restantePausa=0,estadoAntesPausa='',sesion=0;
+function mostrar(id){
+  for(const e of document.querySelectorAll('.pantalla'))e.hidden=e.id!==id;
+  ubicarControlMusicaMate(id);
+}
+function imagen(id,ruta,respaldo){const el=$(id);el.hidden=true;if(respaldo)$(respaldo).hidden=false;if(!ruta){el.removeAttribute('src');return}el.onload=()=>{el.hidden=false;if(respaldo)$(respaldo).hidden=true};el.onerror=()=>{el.hidden=true;if(respaldo)$(respaldo).hidden=false};el.src=ruta}
+function fondo(id,ruta){const el=$(id);el.style.backgroundImage='none';const peticion=String(sesion);el.dataset.fondoPeticion=peticion+':'+(ruta||'');if(!ruta)return;const img=new Image();img.onload=()=>{if(el.dataset.fondoPeticion===peticion+':'+ruta)el.style.backgroundImage=`url(${JSON.stringify(ruta)})`};img.src=ruta}
+function configurarTextos(){document.title='Math Arcade | Math Pixels';$('tituloPortada').textContent=$('tituloJuego').textContent=configuracion.titulo;$('frasePortada').textContent=configuracion.frase;$('saludo').textContent=configuracion.bienvenida;$('integrantes').textContent=configuracion.integrantes;$('datosEquipo').textContent=configuracion.datos;$('descripcion').textContent=configuracion.descripcion;for(const texto of configuracion.instrucciones){const li=document.createElement('li');li.textContent=texto;$('listaInstrucciones').append(li)}$('tituloDerrota').textContent=configuracion.tituloDerrota;$('textoDerrota').textContent=configuracion.textoDerrota}
+function crearSeleccion(){personajes.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='opcionAvatar';b.setAttribute('aria-pressed','false');const e=document.createElement('span');e.className='ejemplo';e.textContent=p.ejemplo||'🧑';const foto=document.createElement('img');foto.alt='Avatar de '+p.nombre;foto.hidden=true;if(p.imagen){foto.onload=()=>{foto.hidden=false;e.hidden=true};foto.onerror=()=>{foto.hidden=true;e.hidden=false};foto.src=p.imagen}const nombre=document.createElement('strong');nombre.textContent=p.nombre;b.append(e,foto,nombre);b.onclick=()=>{elegido=i;document.querySelectorAll('.opcionAvatar').forEach((el,n)=>el.setAttribute('aria-pressed',String(i===n)));$('seleccionActual').textContent='Elegiste a '+p.nombre;$('iniciar').disabled=false};$('avatares').append(b)})}
+function irSeleccion(){sesion++;estado='seleccion';mostrar('seleccion')}
+function validar(){if(personajes.length!==4)throw Error('Conserven cuatro personajes.');if(!niveles.length)throw Error('Agreguen al menos un nivel.');for(const n of niveles){if(!n.retos.length||n.ruta.length!==n.retos.length+1)throw Error('En '+n.nombre+', la ruta debe tener una posición más que el número de retos.');for(const r of n.retos)if(typeof r.respuesta!=='number'&&typeof r.respuesta!=='string')throw Error('Revisen una respuesta de '+n.nombre)}}
+function iniciar(){if(elegido===null){irSeleccion();return}try{validar()}catch(e){alert(e.message);return}sesion++;vidas=configuracion.vidas;puntos=0;const p=personajes[elegido];$('avatarEjemplo').textContent=p.ejemplo||'🧑';$('nombrePersonaje').textContent=p.nombre;imagen('fotoPersonaje',p.imagen,'avatarEjemplo');cargarNivel(0)}
+function configurarPanel(n){const posiciones=['centro','superiorIzquierda','superiorDerecha','inferiorIzquierda','inferiorDerecha','personalizada'];let pos=n.posicionReto||configuracion.posicionReto||'centro';if(!posiciones.includes(pos))pos='centro';const estilo=(n.estiloReto||configuracion.estiloReto)==='simple'?'simple':'tarjeta';$('panelReto').className=estilo+' '+pos;$('panelReto').style.setProperty('--reto-x',(n.retoX??configuracion.retoX??2)+'%');$('panelReto').style.setProperty('--reto-y',(n.retoY??configuracion.retoY??2)+'%')}
+function cargarNivel(n){sesion++;nivelActual=n;indice=0;mostrar('juego');const actual=niveles[n];fondo('escenario',actual.fondo);configurarPanel(actual);$('personaje').classList.remove('entrando');$('puertaSalida').classList.remove('abierta');$('puertaSalida').disabled=true;$('puertaSalida').setAttribute('aria-label','Puerta cerrada: completa los retos');imagen('fotoPuerta',configuracion.puertaImagen,'puertaEjemplo');$('siguienteNivel').hidden=true;$('estado').textContent=actual.nombre+': resuelve los retos para avanzar.';colocar();cargarReto();marcador()}
+function colocar(){
+const [x,y]=niveles[nivelActual].ruta[indice],p=$('personaje'),esc=$('escenario');
+  // Mantiene avatar y nombre dentro de la foto, incluso en pantallas pequeñas.
+const ancho=esc.clientWidth,alto=esc.clientHeight;
+p.style.left=Math.max(0,Math.min(ancho*x/100,ancho-p.offsetWidth-5))+'px';
+p.style.top=Math.max(0,Math.min(alto*y/100,alto-p.offsetHeight-$('nombrePersonaje').offsetHeight-12))+'px';
+const nivel=niveles[nivelActual], [dx,dy]=nivel.puerta||nivel.ruta[nivel.ruta.length-1], puerta=$('puertaSalida');
+puerta.style.left=Math.max(0,Math.min(ancho*dx/100,ancho-puerta.offsetWidth-5))+'px';
+puerta.style.top=Math.max(0,Math.min(alto*dy/100,alto-puerta.offsetHeight-12))+'px';
+}
+function abrirPuerta(){
+$('puertaSalida').disabled=false;$('puertaSalida').classList.add('abierta');
+$('puertaSalida').setAttribute('aria-label',nivelActual===niveles.length-1?'Entrar a la salida final':'Entrar al siguiente lugar');
+if(configuracion.puertaAbiertaImagen)imagen('fotoPuerta',configuracion.puertaAbiertaImagen,'puertaEjemplo');
+}
+
+function marcador(){$('vidas').textContent=vidas;$('puntos').textContent=puntos;$('nombreNivel').textContent=(nivelActual+1)+'/'+niveles.length+' · '+niveles[nivelActual].nombre}
+function segundos(){return Math.max(1,Number(configuracion.segundosPorReto)||30)}
+function cargarReto(){estado='reto';const r=niveles[nivelActual].retos[indice];$('contadorRetos').textContent='Reto '+(indice+1)+' de '+niveles[nivelActual].retos.length;$('pregunta').textContent=r.pregunta;$('opciones').textContent=(r.opciones||[]).join('\n');$('respuesta').value='';$('respuesta').setAttribute('inputmode',typeof r.respuesta==='number'?'decimal':'text');$('respuesta').disabled=false;$('responder').disabled=false;$('siguienteReto').hidden=true;$('mensaje').textContent='';venceEn=performance.now()+segundos()*1000;$('tiempo').textContent=segundos();$('respuesta').focus({preventScroll:true})}
+// Carga el archivo elegido arriba; si falta, conserva a Ximena visible con su foto integrada.
+function cargarFotoXimena(){
+  const foto=$('fotoXimena');
+  $('figuraXimena').hidden=false;
+  foto.hidden=true;
+  foto.onload=()=>{foto.hidden=false};
+  foto.onerror=()=>{
+    foto.onerror=()=>{foto.hidden=true};
+    foto.src=configuracion.ximenaImagenIntegrada;
+  };
+  foto.src=configuracion.ximenaImagen||configuracion.ximenaImagenIntegrada;
+}
+function irSala(){sesion++;estado='derrota';if($('pausa').open)$('pausa').close();mostrar('sala');fondo('sala',configuracion.salaMaestros);cargarFotoXimena();$('resumenDerrota').textContent='Llegaste al lugar '+(nivelActual+1)+' de '+niveles.length+' · Puntos: '+puntos;imagen('personajeSala',personajes[elegido].imagen)}
+function perderVida(texto){if(estado!=='reto')return;sonarEfectoMate('vida');vidas--;marcador();$('respuesta').value='';if(configuracion.enviarPorPrimerError||vidas<=0){irSala();return}$('mensaje').textContent=texto+' Perdiste una vida. Inténtalo otra vez.';venceEn=performance.now()+segundos()*1000;$('tiempo').textContent=segundos()}
+// Lee números, fracciones y raíces sin ejecutar código escrito por el jugador.
+function leerNumero(texto){
+ const limpio=texto.trim().replace(/,/g,'.').replace(/−/g,'-').replace(/\s+/g,'');
+ if(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(limpio))return Number(limpio);
+ const fraccion=limpio.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\/([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/);
+ if(fraccion){const denominador=Number(fraccion[2]);return denominador?Number(fraccion[1])/denominador:NaN}
+ const raiz=limpio.match(/^([+-]?)(?:√(\d+(?:\.\d*)?)|(?:sqrt|raiz)\((\d+(?:\.\d*)?)\))$/i);
+ if(raiz)return (raiz[1]==='-'?-1:1)*Math.sqrt(Number(raiz[2]??raiz[3]));
+ return NaN;
+}
+function revisar(e){e.preventDefault();if(estado!=='reto')return;if(performance.now()>=venceEn){perderVida('Se acabó el tiempo.');return}const texto=$('respuesta').value.trim();if(!texto)return;const r=niveles[nivelActual].retos[indice];let correcta=false;if(typeof r.respuesta==='number'){const numero=leerNumero(texto);if(!Number.isFinite(numero)){$('mensaje').textContent='Escribe un número, una fracción (47/34) o una raíz (√2).';return}correcta=(r.respuestas||[r.respuesta]).some(valor=>Math.abs(numero-valor)<(r.tolerancia??0.00000001))}else{correcta=texto.toUpperCase().replace(/\s+/g,'')===r.respuesta.toUpperCase().replace(/\s+/g,'')}if(!correcta){perderVida('Respuesta incorrecta.');return}estado='moviendo';puntos+=configuracion.puntosPorAcierto;indice++;marcador();if(!configuracion.moverSoloAlCambiarLugar)colocar();$('respuesta').disabled=true;$('responder').disabled=true;$('mensaje').textContent=configuracion.moverSoloAlCambiarLugar?'¡Correcto! Completaste un reto de este lugar.':'¡Correcto! Tu personaje avanza.';const actual=sesion;setTimeout(()=>{if(sesion!==actual||estado!=='moviendo')return;despuesMovimiento()},850)}
+function despuesMovimiento(){if(indice<niveles[nivelActual].retos.length){estado='acierto';$('siguienteReto').hidden=false;$('estado').textContent='¡Respuesta correcta! Pulsa Siguiente reto.'}else{estado='nivelCompleto';sonarEfectoMate('nivel');abrirPuerta();$('siguienteNivel').textContent=nivelActual===niveles.length-1?'Terminar recorrido':'Avanzar al siguiente lugar';$('siguienteNivel').hidden=false;$('mensaje').textContent='¡Puerta abierta! Pulsa la puerta para entrar al siguiente lugar.';$('estado').textContent='Continúa al siguiente escenario.'}}
+function completarTraslado(){if(nivelActual<niveles.length-1){cargarNivel(nivelActual+1)}else{estado='victoria';sesion++;mostrar('victoria');sonarEfectoMate('ganar');fondo('victoria',configuracion.fondoVictoria);$('resumenVictoria').textContent=personajes[elegido].nombre+' completó '+niveles.length+' lugares · Puntos: '+puntos+' · Vidas restantes: '+vidas}}
+function avanzarNivel(){
+if(estado!=='nivelCompleto')return;
+ sonarEfectoMate('puerta');
+estado='traslado';$('siguienteNivel').hidden=true;
+$('estado').textContent='¡Retos cumplidos! Tu personaje va al siguiente lugar.';
+$('puertaSalida').disabled=true;
+const p=$('personaje'),puerta=$('puertaSalida');
+p.style.left=puerta.style.left;p.style.top=puerta.style.top;
+const actual=sesion;
+setTimeout(()=>{
+    if(sesion!==actual||estado!=='traslado')return;
+    p.classList.add('entrando');
+    setTimeout(()=>{if(sesion===actual&&estado==='traslado')completarTraslado()},450);
+},800);
+}
+function portada(){sesion++;estado='menu';if($('pausa').open)$('pausa').close();mostrar('portada')}
+function pausar(){if(!['reto','moviendo','acierto','nivelCompleto','traslado'].includes(estado))return;musicaFondoMate.pause();estadoAntesPausa=estado;restantePausa=Math.max(0,venceEn-performance.now());estado='pausa';$('pausa').showModal()}
+function continuar(){if(estado!=='pausa')return;$('pausa').close();sonarMusicaMate();estado=estadoAntesPausa;if(estado==='reto')venceEn=performance.now()+restantePausa;if(estado==='moviendo')despuesMovimiento();else if(estado==='traslado')completarTraslado()}
+function reloj(){if(estado==='reto'){const restante=Math.max(0,Math.ceil((venceEn-performance.now())/1000));$('tiempo').textContent=restante;if(restante===0)perderVida('Se acabó el tiempo.')}requestAnimationFrame(reloj)}
+configurarTextos();crearSeleccion();
+imagen('fotoPortada',configuracion.portada);$('fotoPortada').addEventListener('load',()=>{$('portada').classList.add('con-imagen')});
+imagen('fotoInstrucciones',configuracion.instruccionesImagen);fondo('bienvenida',configuracion.fondoBienvenida);fondo('seleccion',configuracion.fondoSeleccion);
+$('verInstrucciones').onclick=()=>{estado='menu';mostrar('bienvenida')};$('irSeleccion').onclick=$('elegirDesdeInstrucciones').onclick=$('cambiarPersonaje').onclick=irSeleccion;
+$('iniciar').onclick=$('reiniciar').onclick=$('reintentar').onclick=$('volverAJugar').onclick=iniciar;
+for(const id of ['volverBienvenida','volverSeleccion','volverJuego','volverSala','volverVictoria'])$(id).onclick=portada;
+$('formulario').addEventListener('submit',revisar);$('siguienteReto').onclick=()=>{if(estado==='acierto')cargarReto()};$('siguienteNivel').onclick=avanzarNivel;$('puertaSalida').onclick=avanzarNivel;
+$('pausar').onclick=pausar;$('continuarPausa').onclick=continuar;$('pausa').addEventListener('cancel',e=>{e.preventDefault();continuar()});
+window.addEventListener('blur',pausar);document.addEventListener('visibilitychange',()=>{if(document.hidden)pausar()});
+window.addEventListener('resize',()=>{if(!$('juego').hidden)colocar()});
+requestAnimationFrame(reloj);
+</script>
+<script>
+/* El reto matemático no cubre la foto del colegio al jugar en celular vertical. */
+(function(){
+ const panel=document.getElementById('panelReto');
+ const escenario=document.getElementById('escenario');
+ const mq=window.matchMedia('(max-width:650px) and (orientation:portrait)');
+ function distribuir(){
+  if(mq.matches && panel.parentElement===escenario){escenario.after(panel)}
+  else if(!mq.matches && panel.parentElement!==escenario){escenario.appendChild(panel)}
+  if(!document.getElementById('juego').hidden && typeof colocar==='function')colocar();
+ }
+ distribuir();window.addEventListener('resize',distribuir);
+})();
+</script>
+<script src="../../assets/arcade-nav.js"></script>
+</body>
+</html>
